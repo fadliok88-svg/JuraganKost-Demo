@@ -472,6 +472,23 @@
                     </div>
                 </div>
 
+                <!-- Add-On Fasilitas Kamar -->
+                <div class="pt-3 border-t border-slate-100 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Add-On Fasilitas Kamar</label>
+                        <span class="text-[10px] font-medium text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full">Tampil di GMaps</span>
+                    </div>
+                    <div id="add-facilities-presets" class="flex flex-wrap gap-1.5">
+                        <!-- Chip fasilitas dirender oleh JS -->
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="add-custom-facility-input" placeholder="Tambah fasilitas lain (misal: Balkon)" class="flex-1 px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-teal-500 focus:border-teal-500" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomFacility('add');}">
+                        <button type="button" onclick="addCustomFacility('add')" class="px-3 py-2 bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0">
+                            <i class="fa-solid fa-plus mr-1"></i>Add
+                        </button>
+                    </div>
+                </div>
+
                 <div class="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
                     <button type="button" onclick="closeAddRoomModal()" class="px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer">
                         Batal
@@ -488,8 +505,8 @@
     <!-- MODAL 2: EDIT DATA KAMAR & PENGHUNI (TERMASUK HAPUS KAMAR)            -->
     <!-- ===================================================================== -->
     <div id="edit-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden modal-animate">
-            <div class="px-6 py-4 bg-teal-50/60 border-b border-teal-100 flex items-center justify-between">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden modal-animate max-h-[92vh] overflow-y-auto">
+            <div class="px-6 py-4 bg-teal-50/60 border-b border-teal-100 flex items-center justify-between sticky top-0 z-10">
                 <h3 id="edit-modal-title" class="font-bold text-slate-900 flex items-center gap-2">
                     <i class="fa-solid fa-pen-to-square text-teal-600"></i>
                     <span>Edit Kamar</span>
@@ -535,6 +552,23 @@
                             <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Tgl Jatuh Tempo</label>
                             <input type="number" id="edit-room-due" min="1" max="31" placeholder="5" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
                         </div>
+                    </div>
+                </div>
+
+                <!-- Add-On Fasilitas Kamar -->
+                <div class="pt-3 border-t border-slate-100 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Add-On Fasilitas Kamar</label>
+                        <span class="text-[10px] font-medium text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full">Tampil di GMaps</span>
+                    </div>
+                    <div id="edit-facilities-presets" class="flex flex-wrap gap-1.5">
+                        <!-- Chip fasilitas dirender oleh JS -->
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="edit-custom-facility-input" placeholder="Tambah fasilitas lain (misal: Balkon)" class="flex-1 px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-teal-500 focus:border-teal-500" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomFacility('edit');}">
+                        <button type="button" onclick="addCustomFacility('edit')" class="px-3 py-2 bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0">
+                            <i class="fa-solid fa-plus mr-1"></i>Add
+                        </button>
                     </div>
                 </div>
 
@@ -856,6 +890,84 @@
         let currentModalRemaining = 0;
         let pendingConfirmAction = null;
 
+        // Daftar Fasilitas Populer & State Pilihan Fasilitas Modal
+        const DEFAULT_FACILITY_PRESETS = [
+            'AC',
+            'Kamar Mandi Dalam',
+            'WiFi Kencang',
+            'Kasur & Bantal',
+            'Lemari Pakaian',
+            'Meja & Kursi',
+            'Water Heater',
+            'Parkir Motor'
+        ];
+        let addModalFacilities = [];
+        let editModalFacilities = [];
+
+        function getFacilityIconClass(facilityName) {
+            const lower = (facilityName || '').toLowerCase();
+            if (lower.includes('ac')) return 'fa-snowflake';
+            if (lower.includes('mandi') || lower.includes('wc') || lower.includes('water')) return 'fa-shower';
+            if (lower.includes('wifi') || lower.includes('internet')) return 'fa-wifi';
+            if (lower.includes('kasur') || lower.includes('bed')) return 'fa-bed';
+            if (lower.includes('lemari')) return 'fa-door-closed';
+            if (lower.includes('meja') || lower.includes('kursi')) return 'fa-chair';
+            if (lower.includes('parkir') || lower.includes('motor')) return 'fa-motorcycle';
+            if (lower.includes('tv')) return 'fa-tv';
+            if (lower.includes('kulkas')) return 'fa-temperature-low';
+            return 'fa-circle-check';
+        }
+
+        function renderFacilitySelector(mode) {
+            const containerId = mode === 'add' ? 'add-facilities-presets' : 'edit-facilities-presets';
+            const selectedList = mode === 'add' ? addModalFacilities : editModalFacilities;
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            const combinedOptions = Array.from(new Set([...DEFAULT_FACILITY_PRESETS, ...selectedList]));
+            container.innerHTML = combinedOptions.map(fac => {
+                const isSelected = selectedList.includes(fac);
+                const icon = getFacilityIconClass(fac);
+                const btnClass = isSelected
+                    ? 'bg-teal-600 text-white border-teal-600 shadow-2xs'
+                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-teal-50 hover:text-teal-700 hover:border-teal-200';
+                return `
+                    <button type="button" onclick="toggleFacilityItem('${mode}', '${escapeHtml(fac)}')" class="px-2.5 py-1.5 rounded-lg border text-[11px] font-semibold transition flex items-center gap-1.5 cursor-pointer ${btnClass}">
+                        <i class="fa-solid ${isSelected ? 'fa-check' : icon} text-[10px]"></i>
+                        <span>${escapeHtml(fac)}</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function toggleFacilityItem(mode, facilityLabel) {
+            const list = mode === 'add' ? addModalFacilities : editModalFacilities;
+            const idx = list.indexOf(facilityLabel);
+            if (idx > -1) {
+                list.splice(idx, 1);
+            } else {
+                list.push(facilityLabel);
+            }
+            renderFacilitySelector(mode);
+        }
+
+        function addCustomFacility(mode) {
+            const inputId = mode === 'add' ? 'add-custom-facility-input' : 'edit-custom-facility-input';
+            const inputEl = document.getElementById(inputId);
+            if (!inputEl) return;
+            const val = inputEl.value.trim();
+            if (!val) {
+                showToast('Ketik nama fasilitas terlebih dahulu.', 'warning');
+                return;
+            }
+            const list = mode === 'add' ? addModalFacilities : editModalFacilities;
+            if (!list.some(item => item.toLowerCase() === val.toLowerCase())) {
+                list.push(val);
+            }
+            inputEl.value = '';
+            renderFacilitySelector(mode);
+        }
+
         // --- 2. DATASET SIMULASI DEMO LENGKAP (LUNAS, CICIL, TELAT, KOSONG, UTILITIES) ---
         function buildDemoShowcaseDataset() {
             const currentPeriod = getPeriodKey(selectedYear, selectedMonth);
@@ -865,11 +977,11 @@
             const dueSoon = Math.min(28, todayObj.getDate() + 2);
 
             const demoRooms = [
-                { id: 'jk-r1', name: 'Kamar 01 (AC)', status: 'occupied', tenantName: 'Rizky Pratama', tenantPhone: '081234567890', price: 1500000, dueDay: 5 },
-                { id: 'jk-r2', name: 'Kamar 02 (AC)', status: 'occupied', tenantName: 'Nadia Putri', tenantPhone: '082198765432', price: 1500000, dueDay: dueSoon },
-                { id: 'jk-r3', name: 'Kamar 03 (Non-AC)', status: 'occupied', tenantName: 'Hendra Wijaya', tenantPhone: '085711223344', price: 1000000, dueDay: dueLate },
-                { id: 'jk-r4', name: 'Kamar 04 (Non-AC)', status: 'occupied', tenantName: 'Aulia Rahman', tenantPhone: '081355667788', price: 1000000, dueDay: 20 },
-                { id: 'jk-r5', name: 'Kamar 05 (AC)', status: 'empty', tenantName: '', tenantPhone: '', price: 1500000, dueDay: 1 }
+                { id: 'jk-r1', name: 'Kamar 01 (AC)', status: 'occupied', tenantName: 'Rizky Pratama', tenantPhone: '081234567890', price: 1500000, dueDay: 5, facilities: ['AC', 'Kamar Mandi Dalam', 'WiFi Kencang', 'Kasur & Bantal', 'Lemari Pakaian'] },
+                { id: 'jk-r2', name: 'Kamar 02 (AC)', status: 'occupied', tenantName: 'Nadia Putri', tenantPhone: '082198765432', price: 1500000, dueDay: dueSoon, facilities: ['AC', 'Kamar Mandi Dalam', 'WiFi Kencang', 'Kasur & Bantal', 'Meja & Kursi'] },
+                { id: 'jk-r3', name: 'Kamar 03 (Non-AC)', status: 'occupied', tenantName: 'Hendra Wijaya', tenantPhone: '085711223344', price: 1000000, dueDay: dueLate, facilities: ['WiFi Kencang', 'Kasur & Bantal', 'Lemari Pakaian', 'Parkir Motor'] },
+                { id: 'jk-r4', name: 'Kamar 04 (Non-AC)', status: 'occupied', tenantName: 'Aulia Rahman', tenantPhone: '081355667788', price: 1000000, dueDay: 20, facilities: ['WiFi Kencang', 'Kasur & Bantal', 'Lemari Pakaian'] },
+                { id: 'jk-r5', name: 'Kamar 05 (AC)', status: 'empty', tenantName: '', tenantPhone: '', price: 1500000, dueDay: 1, facilities: ['AC', 'Kamar Mandi Dalam', 'WiFi Kencang', 'Kasur & Bantal', 'Lemari Pakaian', 'Water Heater'] }
             ];
 
             const demoPayments = [
@@ -1566,22 +1678,42 @@
             grid.innerHTML = roomsData.map((room, idx) => {
                 const isAvailable = room.status === 'empty';
                 const numLabel = String(idx + 1).padStart(2, '0');
+                const facilities = Array.isArray(room.facilities) ? room.facilities : [];
+                const facilitiesHtml = facilities.length > 0
+                    ? `<div class="flex flex-wrap gap-1.5">
+                        ${facilities.map(f => `
+                            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-teal-50/80 text-teal-800 border border-teal-100 text-[11px] font-medium">
+                                <i class="fa-solid ${getFacilityIconClass(f)} text-teal-600 text-[10px]"></i>
+                                <span>${escapeHtml(f)}</span>
+                            </span>
+                        `).join('')}
+                       </div>`
+                    : `<p class="text-[11px] text-slate-400 italic">Fasilitas standar kamar kost</p>`;
+
                 return `
-                    <div class="bg-white rounded-2xl border ${isAvailable ? 'border-emerald-200 shadow-xs' : 'border-slate-200 opacity-80'} p-5 flex flex-col justify-between gap-4">
-                        <div class="flex items-start justify-between gap-3">
-                            <div class="flex items-center gap-3">
-                                <div class="w-11 h-11 rounded-xl ${isAvailable ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-500'} font-bold flex items-center justify-center text-base">
-                                    ${numLabel}
+                    <div class="bg-white rounded-2xl border ${isAvailable ? 'border-emerald-200 shadow-xs' : 'border-slate-200 opacity-85'} p-5 flex flex-col justify-between gap-4">
+                        <div class="space-y-3">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-11 h-11 rounded-xl ${isAvailable ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-500'} font-bold flex items-center justify-center text-base shrink-0">
+                                        ${numLabel}
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-slate-900 text-base">${escapeHtml(room.name)}</h3>
+                                        <p class="text-sm font-extrabold text-teal-700 mt-0.5">${formatRupiah(room.price)} <span class="text-xs font-normal text-slate-500">/ bulan</span></p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 class="font-bold text-slate-900 text-base">${escapeHtml(room.name)}</h3>
-                                    <p class="text-sm font-extrabold text-teal-700 mt-0.5">${formatRupiah(room.price)} <span class="text-xs font-normal text-slate-500">/ bulan</span></p>
-                                </div>
+                                ${isAvailable
+                                    ? `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Tersedia</span>`
+                                    : `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200 shrink-0">Terisi</span>`
+                                }
                             </div>
-                            ${isAvailable
-                                ? `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Tersedia</span>`
-                                : `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200">Terisi</span>`
-                            }
+
+                            <!-- Keterangan Fasilitas Kamar -->
+                            <div class="pt-2 border-t border-slate-100">
+                                <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Fasilitas Kamar</p>
+                                ${facilitiesHtml}
+                            </div>
                         </div>
 
                         <div class="pt-3 border-t border-slate-100">
@@ -1727,6 +1859,18 @@
 
             card.className = `bg-white rounded-2xl border ${borderClass} shadow-xs p-5 flex flex-col justify-between transition hover:shadow-md`;
 
+            const roomFacilities = Array.isArray(room.facilities) ? room.facilities : [];
+            const facilitiesBadgesHtml = roomFacilities.length > 0
+                ? `<div class="mt-3 flex flex-wrap gap-1.5">
+                    ${roomFacilities.map(f => `
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-teal-50/70 text-teal-800 border border-teal-100 text-[11px] font-medium">
+                            <i class="fa-solid ${getFacilityIconClass(f)} text-teal-600 text-[10px]"></i>
+                            <span>${escapeHtml(f)}</span>
+                        </span>
+                    `).join('')}
+                   </div>`
+                : '';
+
             if (room.status === 'empty') {
                 card.innerHTML = `
                     <div>
@@ -1743,9 +1887,11 @@
                             ${statusBadge}
                         </div>
 
-                        <div class="my-5 py-6 px-4 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-center">
+                        ${facilitiesBadgesHtml}
+
+                        <div class="my-4 py-5 px-4 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-center">
                             <p class="text-sm font-medium text-slate-600">Kamar sedang kosong</p>
-                            <p class="text-xs text-slate-400 mt-0.5">Klik Edit untuk mengisi data penghuni baru</p>
+                            <p class="text-xs text-slate-400 mt-0.5">Klik Edit untuk mengisi penghuni atau atur fasilitas</p>
                         </div>
                     </div>
 
@@ -1780,24 +1926,10 @@
                         ${statusBadge}
                     </div>
 
-                    <!-- Info Harga & Kontak -->
-                    <div class="mt-4 grid grid-cols-2 gap-2.5 bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs">
-                        <div>
-                            <span class="text-slate-400 block">Tarif Sewa / Bulan</span>
-                            <span class="font-bold text-slate-800 text-sm">${formatRupiah(room.price)}</span>
-                        </div>
-                        <div>
-                            <span class="text-slate-400 block">WhatsApp Penghuni</span>
-                            <span class="font-medium text-slate-700">${escapeHtml(room.tenantPhone || '-')}</span>
-                        </div>
-                    </div>
+                    ${facilitiesBadgesHtml}
 
-                    <!-- Progress Bar Cicilan / Pelunasan -->
-                    <div class="mt-4 space-y-1.5">
-                        <div class="flex items-center justify-between text-xs">
-                            <span class="text-slate-500">Terbayar: <strong class="text-emerald-600">${formatRupiah(summary.totalPaid)}</strong></span>
-                            <span class="text-slate-500">Sisa: <strong class="${summary.remaining > 0 ? 'text-rose-600' : 'text-slate-700'}">${formatRupiah(summary.remaining)}</strong></span>
-                        </div>
+                    <!-- Info Harga & Kontak -->
+                    <div class="mt-3.5 grid grid-cols-2 gap-2.5 bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs">
                         <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60">
                             <div class="${progressBarColor} h-full rounded-full transition-all duration-300" style="width: ${summary.percentage}%"></div>
                         </div>
@@ -2089,6 +2221,9 @@
             document.getElementById('add-tenant-phone').value = '';
             document.getElementById('add-room-price').value = 1200000;
             document.getElementById('add-room-due').value = 5;
+            document.getElementById('add-custom-facility-input').value = '';
+            addModalFacilities = ['WiFi Kencang', 'Kasur & Bantal', 'Lemari Pakaian'];
+            renderFacilitySelector('add');
             toggleAddTenantFields();
 
             const modal = document.getElementById('add-room-modal');
@@ -2133,14 +2268,90 @@
                 tenantName: status === 'occupied' ? tenantName : '',
                 tenantPhone: status === 'occupied' ? tenantPhone : '',
                 price,
-                dueDay: Math.min(31, Math.max(1, dueDay))
+                dueDay: Math.min(31, Math.max(1, dueDay)),
+                facilities: [...addModalFacilities]
             };
 
             roomsData.push(newRoom);
             saveData(true);
             closeAddRoomModal();
             renderAll();
-            showToast(`${newRoom.name} berhasil ditambahkan!`, 'success');
+            showToast(`${newRoom.name} beserta fasilitasnya berhasil ditambahkan!`, 'success');
+        });
+
+        // --- 10. MODAL EDIT & HAPUS KAMAR ---
+        function openEditModal(roomId) {
+            const room = roomsData.find(r => r.id === roomId);
+            if (!room) return;
+
+            document.getElementById('edit-room-id').value = room.id;
+            document.getElementById('edit-modal-title').innerHTML = `<i class="fa-solid fa-pen-to-square text-teal-600"></i> <span>Edit ${escapeHtml(room.name)}</span>`;
+            document.getElementById('edit-room-name').value = room.name;
+            document.getElementById('edit-room-status').value = room.status;
+            document.getElementById('edit-tenant-name').value = room.tenantName || '';
+            document.getElementById('edit-tenant-phone').value = room.tenantPhone || '';
+            document.getElementById('edit-room-price').value = room.price || 0;
+            document.getElementById('edit-room-due').value = room.dueDay || 1;
+            document.getElementById('edit-custom-facility-input').value = '';
+            editModalFacilities = Array.isArray(room.facilities) ? [...room.facilities] : [];
+            renderFacilitySelector('edit');
+
+            toggleTenantFields();
+
+            const modal = document.getElementById('edit-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeEditModal() {
+            const modal = document.getElementById('edit-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function toggleTenantFields() {
+            const status = document.getElementById('edit-room-status').value;
+            const group = document.getElementById('tenant-fields-group');
+            group.style.opacity = status === 'empty' ? '0.45' : '1';
+        }
+
+        document.getElementById('edit-room-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const roomId = document.getElementById('edit-room-id').value;
+            const roomIndex = roomsData.findIndex(r => r.id === roomId);
+            if (roomIndex === -1) return;
+
+            const name = document.getElementById('edit-room-name').value.trim();
+            const status = document.getElementById('edit-room-status').value;
+            const tenantName = document.getElementById('edit-tenant-name').value.trim();
+            const tenantPhone = document.getElementById('edit-tenant-phone').value.trim();
+            const price = parseInt(document.getElementById('edit-room-price').value, 10) || 0;
+            const dueDay = parseInt(document.getElementById('edit-room-due').value, 10) || 1;
+
+            if (!name) {
+                showToast('Nama kamar tidak boleh kosong!', 'warning');
+                return;
+            }
+            if (status === 'occupied' && !tenantName) {
+                showToast('Nama penghuni wajib diisi jika status kamar Terisi.', 'warning');
+                return;
+            }
+
+            roomsData[roomIndex] = {
+                ...roomsData[roomIndex],
+                name,
+                status,
+                tenantName: status === 'occupied' ? tenantName : '',
+                tenantPhone: status === 'occupied' ? tenantPhone : '',
+                price,
+                dueDay: Math.min(31, Math.max(1, dueDay)),
+                facilities: [...editModalFacilities]
+            };
+
+            saveData(true);
+            closeEditModal();
+            renderAll();
+            showToast(`Data & fasilitas ${name} berhasil diperbarui!`, 'success');
         });
 
         // --- 10. MODAL EDIT & HAPUS KAMAR ---
