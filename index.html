@@ -1,0 +1,2106 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JuraganKost-Demo — Sistem Manajemen & Tagihan Kost Modern</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f7f6;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #eef4f2;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #99d5c9;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #5cb8a6;
+        }
+        /* Animasi halus untuk toast & modal */
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-animate {
+            animation: fadeInScale 0.2s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+    <!-- Top Strip Demo Showcase -->
+    <div class="bg-gradient-to-r from-teal-900 via-teal-800 to-emerald-800 text-white px-4 py-2 text-xs font-medium shadow-xs">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 bg-amber-400 text-slate-900 font-extrabold rounded text-[10px] uppercase tracking-wider">Live Demo</span>
+                <span>Simulasi Interaktif <strong>JuraganKost</strong> — Coba tambah kamar, cicilan, utilities, & kirim WA.</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="resetDemoShowcaseData()" class="px-2.5 py-1 bg-white/15 hover:bg-white/25 rounded-lg text-[11px] font-semibold transition cursor-pointer flex items-center gap-1">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Reset Simulasi Awal</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header / Navbar (Teal Executive Theme) -->
+    <header class="bg-white border-b border-teal-100 sticky top-0 z-30 shadow-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-600 to-emerald-600 text-white flex items-center justify-center shadow-md shadow-teal-200">
+                    <i class="fa-solid fa-house-chimney-user text-lg"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 id="brand-title-text" class="font-extrabold text-lg sm:text-xl text-slate-900 leading-tight tracking-tight">JuraganKost-Demo</h1>
+                        <span class="hidden sm:inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">PRO</span>
+                    </div>
+                    <p class="text-xs text-slate-500 hidden sm:block">Aplikasi Kelola Sewa, Cicilan & Laba Bersih Kost</p>
+                </div>
+            </div>
+
+            <!-- Status Real-Time, Sync Cloud & Info Tanggal -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <div id="today-badge" class="hidden md:flex items-center gap-1.5 text-xs font-medium text-slate-600 bg-teal-50/70 px-3 py-1.5 rounded-full border border-teal-100">
+                    <i class="fa-regular fa-calendar text-teal-600"></i>
+                    <span id="today-date-text">Memuat tanggal...</span>
+                </div>
+
+                <!-- Indikator Status Sinkronisasi Cloud -->
+                <button onclick="openSyncModal()" id="sync-status-btn" title="Pengaturan Sinkronisasi & Nama Kost" class="flex items-center gap-1.5 text-xs font-medium px-2.5 sm:px-3 py-1.5 rounded-full border transition cursor-pointer bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100">
+                    <span id="sync-status-dot" class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                    <span id="sync-status-text">Menyambungkan...</span>
+                    <i class="fa-solid fa-sliders text-[11px] ml-0.5 opacity-75"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+
+        <!-- Filter Periode & Kontrol -->
+        <section class="bg-white p-4 sm:p-5 rounded-2xl border border-teal-100/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-check text-teal-600"></i>
+                    <span>Periode Tagihan Kamar</span>
+                </h2>
+                <p class="text-xs text-slate-500 mt-0.5">Pilih bulan & tahun untuk memantau status lunas, cicilan, pengeluaran, dan jatuh tempo</p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+                <select id="filter-month" class="bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-xl focus:ring-teal-500 focus:border-teal-500 px-3.5 py-2.5 font-medium cursor-pointer">
+                    <option value="0">Januari</option>
+                    <option value="1">Februari</option>
+                    <option value="2">Maret</option>
+                    <option value="3">April</option>
+                    <option value="4">Mei</option>
+                    <option value="5">Juni</option>
+                    <option value="6">Juli</option>
+                    <option value="7">Agustus</option>
+                    <option value="8">September</option>
+                    <option value="9">Oktober</option>
+                    <option value="10">November</option>
+                    <option value="11">Desember</option>
+                </select>
+
+                <select id="filter-year" class="bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-xl focus:ring-teal-500 focus:border-teal-500 px-3.5 py-2.5 font-medium cursor-pointer">
+                    <!-- Diisi otomatis oleh JS -->
+                </select>
+
+                <button onclick="resetToCurrentPeriod()" class="px-3.5 py-2.5 bg-teal-50 hover:bg-teal-100 text-teal-700 text-xs sm:text-sm font-semibold rounded-xl border border-teal-200 transition flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span>Bulan Ini</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Ringkasan Statistik (5 Kartu Tanpa Terpotong) -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5">
+            <!-- Kamar Terisi -->
+            <div class="bg-white p-4 rounded-2xl border border-teal-100/80 shadow-xs flex items-start gap-3">
+                <div class="w-10 h-10 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-base shrink-0 mt-0.5">
+                    <i class="fa-solid fa-door-open"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Kamar Terisi</p>
+                    <p id="stat-occupied" class="text-lg font-bold text-slate-900 mt-0.5 leading-snug">0 / 5</p>
+                    <p id="stat-empty-note" class="text-[11px] text-slate-500 mt-0.5 leading-tight">Semua kamar aktif</p>
+                </div>
+            </div>
+
+            <!-- Pemasukan Masuk -->
+            <div class="bg-white p-4 rounded-2xl border border-teal-100/80 shadow-xs flex items-start gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-base shrink-0 mt-0.5">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Uang Masuk</p>
+                    <p id="stat-paid-amount" class="text-base sm:text-[17px] font-bold text-emerald-600 mt-0.5 leading-snug break-words">Rp 0</p>
+                    <p id="stat-paid-count" class="text-[11px] text-slate-500 mt-0.5 leading-tight">0 Lunas • 0 Cicil</p>
+                </div>
+            </div>
+
+            <!-- Biaya Pengeluaran Kost -->
+            <div class="bg-white p-4 rounded-2xl border border-teal-100/80 shadow-xs flex items-start gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-base shrink-0 mt-0.5">
+                    <i class="fa-solid fa-bolt"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Pengeluaran</p>
+                    <p id="stat-expense-amount" class="text-base sm:text-[17px] font-bold text-amber-600 mt-0.5 leading-snug break-words">Rp 0</p>
+                    <p id="stat-expense-count" class="text-[11px] text-slate-500 mt-0.5 leading-tight">0 Item Utilities</p>
+                </div>
+            </div>
+
+            <!-- Laba Bersih Bulan Ini -->
+            <div class="bg-white p-4 rounded-2xl border border-teal-100/80 shadow-xs flex items-start gap-3">
+                <div class="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center text-base shrink-0 mt-0.5">
+                    <i class="fa-solid fa-sack-dollar"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Laba Bersih</p>
+                    <p id="stat-net-profit" class="text-base sm:text-[17px] font-bold text-teal-700 mt-0.5 leading-snug break-words">Rp 0</p>
+                    <p class="text-[11px] text-slate-500 mt-0.5 leading-tight">Masuk - Pengeluaran</p>
+                </div>
+            </div>
+
+            <!-- Total Sisa Tagihan -->
+            <div class="bg-white p-4 rounded-2xl border border-teal-100/80 shadow-xs flex items-start gap-3 sm:col-span-2 lg:col-span-1">
+                <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-base shrink-0 mt-0.5">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Sisa Tagihan</p>
+                    <p id="stat-unpaid-amount" class="text-base sm:text-[17px] font-bold text-rose-600 mt-0.5 leading-snug break-words">Rp 0</p>
+                    <p id="stat-unpaid-count" class="text-[11px] text-slate-500 mt-0.5 leading-tight">0 Kamar belum lunas</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Daftar Kamar Kost (Dinamis + View Switcher Detail / Small Ikon) -->
+        <section class="space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-3 flex-wrap">
+                    <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-bed text-teal-600"></i>
+                        <span id="rooms-section-title">Status Kamar Kost</span>
+                    </h2>
+                    <span id="period-label-badge" class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-teal-50 text-teal-700 border border-teal-200">
+                        Periode Aktif
+                    </span>
+                </div>
+
+                <!-- Kontrol Aksi Kamar: Tambah Kamar & Pengubah Layout -->
+                <div class="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+                    <button onclick="openAddRoomModal()" class="px-3.5 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-xl shadow-xs shadow-teal-200 transition flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Tambah Kamar</span>
+                    </button>
+
+                    <!-- Pengubah Layout: Detail Ikon vs Small Ikon -->
+                    <div class="inline-flex items-center bg-teal-100/60 p-1 rounded-xl border border-teal-200/70">
+                        <button id="btn-view-detail" onclick="setRoomLayout('detail')" class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer bg-white text-teal-700 shadow-xs">
+                            <i class="fa-solid fa-table-list"></i>
+                            <span>Detail Ikon</span>
+                        </button>
+                        <button id="btn-view-small" onclick="setRoomLayout('small')" class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer text-slate-600 hover:text-slate-900">
+                            <i class="fa-solid fa-grip"></i>
+                            <span>Small Ikon</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid Kartu Kamar -->
+            <div id="rooms-container" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <!-- Kartu kamar dirender oleh JavaScript -->
+            </div>
+        </section>
+
+        <!-- Riwayat Pembayaran & Cicilan (Dengan Filter Bulan Independen) -->
+        <section class="bg-white rounded-2xl border border-teal-100/80 shadow-xs overflow-hidden">
+            <div class="p-5 border-b border-slate-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-receipt text-teal-600"></i>
+                        <span>Riwayat Pembayaran & Cicilan</span>
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Filter transaksi berdasarkan bulan & tahun tagihan</p>
+                </div>
+
+                <!-- Filter Bulan & Tahun Khusus Riwayat + Total Nominal -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <select id="history-filter-month" class="bg-slate-50 border border-slate-300 text-slate-800 text-xs font-medium rounded-xl focus:ring-teal-500 focus:border-teal-500 px-3 py-2 cursor-pointer">
+                        <option value="all">Semua Bulan</option>
+                        <option value="0">Januari</option>
+                        <option value="1">Februari</option>
+                        <option value="2">Maret</option>
+                        <option value="3">April</option>
+                        <option value="4">Mei</option>
+                        <option value="5">Juni</option>
+                        <option value="6">Juli</option>
+                        <option value="7">Agustus</option>
+                        <option value="8">September</option>
+                        <option value="9">Oktober</option>
+                        <option value="10">November</option>
+                        <option value="11">Desember</option>
+                    </select>
+
+                    <select id="history-filter-year" class="bg-slate-50 border border-slate-300 text-slate-800 text-xs font-medium rounded-xl focus:ring-teal-500 focus:border-teal-500 px-3 py-2 cursor-pointer">
+                        <option value="all">Semua Tahun</option>
+                    </select>
+
+                    <button onclick="setHistoryToCurrentMonth()" class="px-2.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl border border-slate-200 transition cursor-pointer" title="Tampilkan Bulan Ini">
+                        Bulan Ini
+                    </button>
+
+                    <button onclick="setHistoryToAll()" class="px-2.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl border border-slate-200 transition cursor-pointer" title="Tampilkan Semua Riwayat">
+                        Semua
+                    </button>
+
+                    <div id="history-summary-badge" class="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-2 rounded-xl">
+                        0 Transaksi • Rp 0
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                            <th class="py-3.5 px-5">Tgl Bayar</th>
+                            <th class="py-3.5 px-5">Periode Tagihan</th>
+                            <th class="py-3.5 px-5">Kamar & Penghuni</th>
+                            <th class="py-3.5 px-5">Keterangan</th>
+                            <th class="py-3.5 px-5 text-right">Nominal Masuk</th>
+                            <th class="py-3.5 px-5 text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body" class="divide-y divide-slate-100 text-sm">
+                        <!-- Baris riwayat dirender oleh JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Pengeluaran Kost / Utilities (Listrik, Air, WiFi, Sampah, Perbaikan) -->
+        <section class="bg-white rounded-2xl border border-teal-100/80 shadow-xs overflow-hidden">
+            <div class="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-bolt-lightning text-amber-500"></i>
+                        <span>Biaya Pengeluaran Kost (Utilities & Operasional)</span>
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Catat biaya listrik PLN, air PDAM, internet WiFi, iuran sampah, atau perawatan kost pada periode aktif</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <div id="expense-summary-badge" class="text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-3 py-2 rounded-xl">
+                        0 Item • Rp 0
+                    </div>
+                    <button onclick="openExpenseModal()" class="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Catat Pengeluaran</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                            <th class="py-3.5 px-5">Tanggal</th>
+                            <th class="py-3.5 px-5">Kategori Utilities</th>
+                            <th class="py-3.5 px-5">Keterangan / Detail</th>
+                            <th class="py-3.5 px-5 text-right">Biaya Keluar</th>
+                            <th class="py-3.5 px-5 text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expense-table-body" class="divide-y divide-slate-100 text-sm">
+                        <!-- Baris pengeluaran dirender oleh JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-teal-100 py-4 mt-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
+            <p>&copy; <span id="footer-year"></span> <strong class="text-slate-700">JuraganKost-Demo</strong> — Solusi Manajemen Kost Modern.</p>
+            <p>Ruang Sinkronisasi Cloud: <span id="footer-sync-code" class="font-mono font-semibold text-teal-700">juragankost-demo-utama</span></p>
+        </div>
+    </footer>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 1: TAMBAH KAMAR BARU                                            -->
+    <!-- ===================================================================== -->
+    <div id="add-room-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden modal-animate">
+            <div class="px-6 py-4 bg-teal-50/70 border-b border-teal-100 flex items-center justify-between">
+                <h3 class="font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-door-closed text-teal-600"></i>
+                    <span>Tambah Kamar Baru</span>
+                </h3>
+                <button onclick="closeAddRoomModal()" class="text-slate-400 hover:text-slate-600 w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-200/60 transition cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="add-room-form" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Nama / Nomor Kamar</label>
+                    <input type="text" id="add-room-name" required placeholder="Contoh: Kamar 06 (AC)" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Status Awal Kamar</label>
+                    <select id="add-room-status" onchange="toggleAddTenantFields()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                        <option value="occupied">Terisi (Ada Penghuni)</option>
+                        <option value="empty">Kosong (Belum Ada Penghuni)</option>
+                    </select>
+                </div>
+
+                <div id="add-tenant-fields-group" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Nama Penghuni</label>
+                        <input type="text" id="add-tenant-name" placeholder="Contoh: Budi Santoso" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Nomor WhatsApp</label>
+                        <input type="tel" id="add-tenant-phone" placeholder="Contoh: 081234567890" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Harga Sewa / Bln (Rp)</label>
+                            <input type="number" id="add-room-price" min="0" step="10000" value="1200000" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Tgl Jatuh Tempo</label>
+                            <input type="number" id="add-room-due" min="1" max="31" value="5" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
+                    <button type="button" onclick="closeAddRoomModal()" class="px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 py-2.5 text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-xs transition cursor-pointer">
+                        Tambah Kamar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 2: EDIT DATA KAMAR & PENGHUNI (TERMASUK HAPUS KAMAR)            -->
+    <!-- ===================================================================== -->
+    <div id="edit-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden modal-animate">
+            <div class="px-6 py-4 bg-teal-50/70 border-b border-teal-100 flex items-center justify-between">
+                <h3 id="edit-modal-title" class="font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-teal-600"></i>
+                    <span>Edit Kamar</span>
+                </h3>
+                <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-200/60 transition cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="edit-room-form" class="p-6 space-y-4">
+                <input type="hidden" id="edit-room-id">
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Nama / Nomor Kamar</label>
+                    <input type="text" id="edit-room-name" required placeholder="Contoh: Kamar 01" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Status Kamar</label>
+                    <select id="edit-room-status" onchange="toggleTenantFields()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                        <option value="occupied">Terisi (Ada Penghuni)</option>
+                        <option value="empty">Kosong (Belum Ada Penghuni)</option>
+                    </select>
+                </div>
+
+                <div id="tenant-fields-group" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Nama Penghuni</label>
+                        <input type="text" id="edit-tenant-name" placeholder="Contoh: Ahmad Fauzi" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Nomor WhatsApp</label>
+                        <input type="tel" id="edit-tenant-phone" placeholder="Contoh: 081234567890" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Harga Sewa / Bln (Rp)</label>
+                            <input type="number" id="edit-room-price" min="0" step="10000" placeholder="1200000" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Tgl Jatuh Tempo</label>
+                            <input type="number" id="edit-room-due" min="1" max="31" placeholder="5" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-3 flex items-center justify-between gap-2 border-t border-slate-100">
+                    <button type="button" id="btn-delete-room" onclick="promptDeleteRoom()" class="px-3.5 py-2.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-xl border border-rose-200 transition flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-trash-can"></i>
+                        <span>Hapus Kamar</span>
+                    </button>
+
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="closeEditModal()" class="px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer">
+                            Batal
+                        </button>
+                        <button type="submit" class="px-5 py-2.5 text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-xs transition cursor-pointer">
+                            Simpan
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 3: PEMBAYARAN CUSTOM / CICILAN                                  -->
+    <!-- ===================================================================== -->
+    <div id="payment-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden modal-animate">
+            <div class="px-6 py-4 bg-emerald-600 text-white flex items-center justify-between">
+                <div>
+                    <h3 id="pay-modal-title" class="font-bold text-base flex items-center gap-2">
+                        <i class="fa-solid fa-money-bill-wave"></i>
+                        <span>Input Pembayaran / Cicilan</span>
+                    </h3>
+                    <p id="pay-modal-subtitle" class="text-xs text-emerald-100 mt-0.5">Kamar 01 - Penghuni</p>
+                </div>
+                <button onclick="closePaymentModal()" class="text-emerald-100 hover:text-white w-8 h-8 rounded-lg flex items-center justify-center hover:bg-emerald-700/60 transition cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="payment-form" class="p-6 space-y-4">
+                <input type="hidden" id="pay-room-id">
+
+                <!-- Ringkasan Tagihan Kamar -->
+                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-1.5 text-xs">
+                    <div class="flex justify-between text-slate-600">
+                        <span>Total Harga Sewa:</span>
+                        <span id="pay-summary-total" class="font-semibold text-slate-900">Rp 0</span>
+                    </div>
+                    <div class="flex justify-between text-emerald-600">
+                        <span>Sudah Dibayar:</span>
+                        <span id="pay-summary-paid" class="font-semibold">Rp 0</span>
+                    </div>
+                    <div class="border-t border-slate-200 pt-1.5 flex justify-between text-sm font-bold text-rose-600">
+                        <span>Sisa Tagihan:</span>
+                        <span id="pay-summary-remaining">Rp 0</span>
+                    </div>
+                </div>
+
+                <!-- Input Nominal Pembayaran Custom -->
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Nominal Pembayaran (Rp)</label>
+                        <div class="flex gap-1.5">
+                            <button type="button" onclick="fillHalfRemaining()" class="text-[11px] font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition cursor-pointer">
+                                50% Sisa
+                            </button>
+                            <button type="button" onclick="fillFullRemaining()" class="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition cursor-pointer">
+                                Bayar Lunas
+                            </button>
+                        </div>
+                    </div>
+                    <input type="number" id="pay-amount" required min="1000" step="1000" placeholder="Masukkan nominal bayar..." class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-base font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Tanggal Bayar</label>
+                        <input type="date" id="pay-date" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Catatan (Opsional)</label>
+                        <input type="text" id="pay-note" placeholder="Misal: DP / Cicilan 1" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                </div>
+
+                <div class="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
+                    <button type="button" onclick="closePaymentModal()" class="px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 py-2.5 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-check"></i>
+                        <span>Simpan Pembayaran</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 4: KONFIRMASI HAPUS TRANSAKSI / HAPUS KAMAR                     -->
+    <!-- ===================================================================== -->
+    <div id="confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl border border-slate-200 p-6 text-center space-y-4 modal-animate">
+            <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto text-xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div>
+                <h3 id="confirm-modal-title" class="font-bold text-slate-900 text-base">Konfirmasi Hapus</h3>
+                <p id="confirm-modal-desc" class="text-xs text-slate-500 mt-1">Tindakan ini akan memperbarui status kamar.</p>
+            </div>
+            <div class="flex items-center justify-center gap-2 pt-2">
+                <button onclick="closeConfirmModal()" class="flex-1 py-2.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition cursor-pointer">
+                    Batal
+                </button>
+                <button id="confirm-delete-btn" class="flex-1 py-2.5 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition cursor-pointer">
+                    Ya, Hapus
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 5: PENGATURAN SINKRONISASI & WHITE-LABEL NAMA KOST              -->
+    <!-- ===================================================================== -->
+    <div id="sync-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden modal-animate">
+            <div class="px-6 py-4 bg-gradient-to-r from-teal-700 to-emerald-700 text-white flex items-center justify-between">
+                <div>
+                    <h3 class="font-bold text-base flex items-center gap-2">
+                        <i class="fa-solid fa-sliders"></i>
+                        <span>Pengaturan Kost & Cloud Sync</span>
+                    </h3>
+                    <p class="text-xs text-teal-100 mt-0.5">Kustomisasi nama kost klien & sinkronisasi real-time</p>
+                </div>
+                <button onclick="closeSyncModal()" class="text-teal-100 hover:text-white w-8 h-8 rounded-lg flex items-center justify-center hover:bg-teal-800/60 transition cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-4">
+                <!-- Fitur White-Label Nama Kost untuk Presentasi Klien -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Nama Kost Tampilan (White-Label)</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="brand-name-input" placeholder="Misal: Kost Melati Indah" class="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                        <button type="button" onclick="saveBrandName()" class="px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-xl transition cursor-pointer">
+                            Ubah
+                        </button>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-1">Cocok dicoba saat presentasi agar calon klien melihat nama kost mereka sendiri.</p>
+                </div>
+
+                <div class="border-t border-slate-100 pt-3">
+                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Kode Ruang Sinkronisasi (Firebase)</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="sync-code-input" placeholder="Misal: juragankost-demo-utama" class="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-mono font-semibold text-slate-800 focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                        <button type="button" onclick="saveSyncCode()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl transition cursor-pointer">
+                            Terapkan
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                    <div class="text-xs text-slate-500">
+                        Terakhir sinkron: <span id="last-sync-time" class="font-semibold text-slate-700">Baru saja</span>
+                    </div>
+                    <button type="button" onclick="forceManualSync()" class="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-xl border border-emerald-200 transition flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                        <span>Sinkronkan Sekarang</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 6: INPUT BIAYA PENGELUARAN KOST (UTILITIES)                     -->
+    <!-- ===================================================================== -->
+    <div id="expense-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden modal-animate">
+            <div class="px-6 py-4 bg-amber-600 text-white flex items-center justify-between">
+                <div>
+                    <h3 class="font-bold text-base flex items-center gap-2">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>Catat Pengeluaran Kost</span>
+                    </h3>
+                    <p id="expense-modal-subtitle" class="text-xs text-amber-100 mt-0.5">Periode Aktif</p>
+                </div>
+                <button onclick="closeExpenseModal()" class="text-amber-100 hover:text-white w-8 h-8 rounded-lg flex items-center justify-center hover:bg-amber-700/60 transition cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="expense-form" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Kategori Utilities / Operasional</label>
+                    <select id="expense-category" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
+                        <option value="Listrik PLN">⚡ Listrik PLN / Token</option>
+                        <option value="Air PDAM">💧 Air PDAM / Pompa</option>
+                        <option value="Internet WiFi">📶 Internet / WiFi Kost</option>
+                        <option value="Kebersihan & Sampah">🧹 Kebersihan & Iuran Sampah</option>
+                        <option value="Perbaikan & Maintenance">🛠️ Perbaikan / Service AC / Lampu</option>
+                        <option value="Lainnya">📦 Operasional Lainnya</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Nominal Biaya (Rp)</label>
+                    <input type="number" id="expense-amount" required min="500" step="500" placeholder="Contoh: 350000" class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-base font-bold text-slate-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Tanggal Keluar</label>
+                        <input type="date" id="expense-date" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Keterangan Detail</label>
+                        <input type="text" id="expense-note" placeholder="Misal: Token listrik utama" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
+                    </div>
+                </div>
+
+                <div class="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
+                    <button type="button" onclick="closeExpenseModal()" class="px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 py-2.5 text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-check"></i>
+                        <span>Simpan Pengeluaran</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- JAVASCRIPT LOGIC (JURAGANKOST-DEMO + FIREBASE REAL-TIME SYNC)         -->
+    <!-- ===================================================================== -->
+    <script>
+        // --- 1. KONFIGURASI PENYIMPANAN LOKAL & FIREBASE DEMO DATABASE ---
+        const STORAGE_KEYS = {
+            ROOMS: 'juragankost_demo_rooms_v1',
+            PAYMENTS: 'juragankost_demo_payments_v1',
+            EXPENSES: 'juragankost_demo_expenses_v1',
+            LAYOUT: 'juragankost_demo_layout_v1',
+            SYNC_CODE: 'juragankost_demo_sync_code_v1',
+            BRAND_NAME: 'juragankost_demo_brand_v1',
+            LAST_UPDATED: 'juragankost_demo_updated_v1'
+        };
+
+        // Menggunakan Firebase Realtime Database Khusus JuraganKost-Demo
+        const CLOUD_API_BASE = 'https://juragankost-demo-default-rtdb.asia-southeast1.firebasedatabase.app/juragankost_rooms';
+        const DEFAULT_SYNC_CODE = 'juragankost-demo-utama';
+        const DEFAULT_BRAND_NAME = 'JuraganKost-Demo';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlCustomCode = urlParams.get('kode');
+
+        let activeSyncCode = urlCustomCode || localStorage.getItem(STORAGE_KEYS.SYNC_CODE) || DEFAULT_SYNC_CODE;
+        let activeBrandName = localStorage.getItem(STORAGE_KEYS.BRAND_NAME) || DEFAULT_BRAND_NAME;
+        let isSyncing = false;
+        let cloudSyncInterval = null;
+
+        const MONTH_NAMES = [
+            'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+        ];
+
+        // Waktu Real-Time Saat Ini
+        const now = new Date();
+        let selectedMonth = now.getMonth();
+        let selectedYear = now.getFullYear();
+
+        // Filter khusus bagian Riwayat Pembayaran
+        let historyFilterMonth = String(now.getMonth());
+        let historyFilterYear = String(now.getFullYear());
+
+        // Mode Tampilan Kartu Kamar ('detail' atau 'small')
+        let roomLayoutMode = localStorage.getItem(STORAGE_KEYS.LAYOUT) || 'detail';
+
+        let roomsData = [];
+        let paymentsData = [];
+        let expensesData = [];
+        let currentModalRemaining = 0;
+        let pendingConfirmAction = null;
+
+        // --- 2. DATASET SIMULASI DEMO LENGKAP (LUNAS, CICIL, TELAT, KOSONG, UTILITIES) ---
+        function buildDemoShowcaseDataset() {
+            const currentPeriod = getPeriodKey(selectedYear, selectedMonth);
+            const todayObj = new Date();
+            const todayStr = formatDateInput(todayObj);
+            const dueLate = Math.max(1, todayObj.getDate() - 3);
+            const dueSoon = Math.min(28, todayObj.getDate() + 2);
+
+            const demoRooms = [
+                { id: 'jk-r1', name: 'Kamar 01 (AC)', status: 'occupied', tenantName: 'Rizky Pratama', tenantPhone: '081234567890', price: 1500000, dueDay: 5 },
+                { id: 'jk-r2', name: 'Kamar 02 (AC)', status: 'occupied', tenantName: 'Nadia Putri', tenantPhone: '082198765432', price: 1500000, dueDay: dueSoon },
+                { id: 'jk-r3', name: 'Kamar 03 (Non-AC)', status: 'occupied', tenantName: 'Hendra Wijaya', tenantPhone: '085711223344', price: 1000000, dueDay: dueLate },
+                { id: 'jk-r4', name: 'Kamar 04 (Non-AC)', status: 'occupied', tenantName: 'Aulia Rahman', tenantPhone: '081355667788', price: 1000000, dueDay: 20 },
+                { id: 'jk-r5', name: 'Kamar 05 (AC)', status: 'empty', tenantName: '', tenantPhone: '', price: 1500000, dueDay: 1 }
+            ];
+
+            const demoPayments = [
+                {
+                    id: 'jk-p1',
+                    roomId: 'jk-r1',
+                    roomName: 'Kamar 01 (AC)',
+                    tenantName: 'Rizky Pratama',
+                    period: currentPeriod,
+                    amount: 1500000,
+                    date: todayStr,
+                    note: 'Lunas Transfer BCA'
+                },
+                {
+                    id: 'jk-p2',
+                    roomId: 'jk-r2',
+                    roomName: 'Kamar 02 (AC)',
+                    tenantName: 'Nadia Putri',
+                    period: currentPeriod,
+                    amount: 750000,
+                    date: todayStr,
+                    note: 'DP / Cicilan Pertama (50%)'
+                }
+            ];
+
+            const demoExpenses = [
+                {
+                    id: 'jk-e1',
+                    period: currentPeriod,
+                    category: 'Listrik PLN',
+                    amount: 350000,
+                    date: todayStr,
+                    note: 'Token Listrik Utama Kost'
+                },
+                {
+                    id: 'jk-e2',
+                    period: currentPeriod,
+                    category: 'Internet WiFi',
+                    amount: 275000,
+                    date: todayStr,
+                    note: 'Tagihan WiFi 50 Mbps'
+                }
+            ];
+
+            return { demoRooms, demoPayments, demoExpenses };
+        }
+
+        function loadDataFromLocal() {
+            try {
+                const savedRooms = localStorage.getItem(STORAGE_KEYS.ROOMS);
+                const savedPayments = localStorage.getItem(STORAGE_KEYS.PAYMENTS);
+                const savedExpenses = localStorage.getItem(STORAGE_KEYS.EXPENSES);
+
+                if (savedRooms && savedPayments) {
+                    roomsData = JSON.parse(savedRooms);
+                    paymentsData = JSON.parse(savedPayments);
+                    expensesData = savedExpenses ? JSON.parse(savedExpenses) : [];
+                } else {
+                    const { demoRooms, demoPayments, demoExpenses } = buildDemoShowcaseDataset();
+                    roomsData = demoRooms;
+                    paymentsData = demoPayments;
+                    expensesData = demoExpenses;
+                    localStorage.setItem(STORAGE_KEYS.ROOMS, JSON.stringify(roomsData));
+                    localStorage.setItem(STORAGE_KEYS.PAYMENTS, JSON.stringify(paymentsData));
+                    localStorage.setItem(STORAGE_KEYS.EXPENSES, JSON.stringify(expensesData));
+                }
+            } catch (err) {
+                console.error('Gagal memuat data lokal:', err);
+                const { demoRooms, demoPayments, demoExpenses } = buildDemoShowcaseDataset();
+                roomsData = demoRooms;
+                paymentsData = demoPayments;
+                expensesData = demoExpenses;
+            }
+        }
+
+        function saveData(triggerCloudPush = true) {
+            const timestamp = Date.now();
+            localStorage.setItem(STORAGE_KEYS.ROOMS, JSON.stringify(roomsData));
+            localStorage.setItem(STORAGE_KEYS.PAYMENTS, JSON.stringify(paymentsData));
+            localStorage.setItem(STORAGE_KEYS.EXPENSES, JSON.stringify(expensesData));
+            localStorage.setItem(STORAGE_KEYS.LAST_UPDATED, String(timestamp));
+
+            if (triggerCloudPush) {
+                pushDataToCloud(timestamp);
+            }
+        }
+
+        function resetDemoShowcaseData() {
+            const { demoRooms, demoPayments, demoExpenses } = buildDemoShowcaseDataset();
+            roomsData = demoRooms;
+            paymentsData = demoPayments;
+            expensesData = demoExpenses;
+            saveData(true);
+            renderAll();
+            showToast('Data simulasi JuraganKost-Demo berhasil di-reset ke kondisi awal!', 'success');
+        }
+
+        function updateBrandUI() {
+            const titleEl = document.getElementById('brand-title-text');
+            if (titleEl) titleEl.textContent = activeBrandName;
+            document.title = `${activeBrandName} — Sistem Manajemen & Tagihan Kost Modern`;
+        }
+
+        function saveBrandName() {
+            const val = document.getElementById('brand-name-input').value.trim();
+            if (!val) {
+                showToast('Nama kost tidak boleh kosong!', 'warning');
+                return;
+            }
+            activeBrandName = val;
+            localStorage.setItem(STORAGE_KEYS.BRAND_NAME, activeBrandName);
+            updateBrandUI();
+            showToast(`Nama kost berhasil diubah menjadi "${activeBrandName}"`, 'success');
+        }
+
+        // --- 3. SINKRONISASI CLOUD FIREBASE ---
+        function updateSyncUI(state, customText = '') {
+            const btn = document.getElementById('sync-status-btn');
+            const dot = document.getElementById('sync-status-dot');
+            const text = document.getElementById('sync-status-text');
+            if (!btn || !dot || !text) return;
+
+            if (state === 'online') {
+                btn.className = 'flex items-center gap-1.5 text-xs font-medium px-2.5 sm:px-3 py-1.5 rounded-full border transition cursor-pointer bg-teal-50 text-teal-700 border-teal-200 hover:bg-teal-100';
+                dot.className = 'w-2 h-2 rounded-full bg-teal-500';
+                text.textContent = customText || 'Cloud Aktif';
+            } else if (state === 'syncing') {
+                btn.className = 'flex items-center gap-1.5 text-xs font-medium px-2.5 sm:px-3 py-1.5 rounded-full border transition cursor-pointer bg-cyan-50 text-cyan-700 border-cyan-200';
+                dot.className = 'w-2 h-2 rounded-full bg-cyan-500 animate-ping';
+                text.textContent = customText || 'Sinkronisasi...';
+            } else {
+                btn.className = 'flex items-center gap-1.5 text-xs font-medium px-2.5 sm:px-3 py-1.5 rounded-full border transition cursor-pointer bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100';
+                dot.className = 'w-2 h-2 rounded-full bg-amber-500';
+                text.textContent = customText || 'Mode Lokal';
+            }
+        }
+
+        function getSanitizedSyncCode() {
+            return (activeSyncCode || DEFAULT_SYNC_CODE).trim().toLowerCase().replace(/[^a-z0-9-_]/g, '');
+        }
+
+        function getCloudEndpointUrl() {
+            const safeKey = getSanitizedSyncCode();
+            return `${CLOUD_API_BASE}/${encodeURIComponent(safeKey)}.json`;
+        }
+
+        async function pushDataToCloud(timestamp = Date.now()) {
+            if (isSyncing) return;
+            isSyncing = true;
+            updateSyncUI('syncing', 'Menyimpan...');
+
+            try {
+                const payload = {
+                    updatedAt: timestamp,
+                    rooms: roomsData,
+                    payments: paymentsData,
+                    expenses: expensesData
+                };
+
+                const response = await fetch(getCloudEndpointUrl(), {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    updateSyncUI('online', 'Cloud Aktif');
+                    const timeEl = document.getElementById('last-sync-time');
+                    if (timeEl) {
+                        const d = new Date();
+                        timeEl.textContent = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
+                    }
+                } else {
+                    updateSyncUI('offline', 'Cek Rules Firebase');
+                }
+            } catch (err) {
+                updateSyncUI('offline', 'Mode Lokal');
+            } finally {
+                isSyncing = false;
+            }
+        }
+
+        async function pullDataFromCloud(isManual = false) {
+            if (isSyncing) return;
+            if (isManual) updateSyncUI('syncing', 'Menarik Data...');
+
+            try {
+                const response = await fetch(`${getCloudEndpointUrl()}?t=${Date.now()}`, {
+                    method: 'GET',
+                    cache: 'no-store'
+                });
+
+                if (response.ok) {
+                    const cloudData = await response.json();
+
+                    if (cloudData === null) {
+                        await pushDataToCloud(Date.now());
+                        if (isManual) showToast('Database demo berhasil diinisialisasi & disinkronkan!', 'success');
+                        return;
+                    }
+
+                    if (cloudData && Array.isArray(cloudData.rooms)) {
+                        const localUpdated = parseInt(localStorage.getItem(STORAGE_KEYS.LAST_UPDATED) || '0', 10);
+                        const cloudUpdated = parseInt(cloudData.updatedAt || '0', 10);
+
+                        if (cloudUpdated > localUpdated || isManual) {
+                            roomsData = cloudData.rooms;
+                            paymentsData = Array.isArray(cloudData.payments) ? cloudData.payments : [];
+                            expensesData = Array.isArray(cloudData.expenses) ? cloudData.expenses : [];
+                            localStorage.setItem(STORAGE_KEYS.ROOMS, JSON.stringify(roomsData));
+                            localStorage.setItem(STORAGE_KEYS.PAYMENTS, JSON.stringify(paymentsData));
+                            localStorage.setItem(STORAGE_KEYS.EXPENSES, JSON.stringify(expensesData));
+                            localStorage.setItem(STORAGE_KEYS.LAST_UPDATED, String(cloudUpdated || Date.now()));
+                            renderAll();
+                            if (isManual) showToast('Data berhasil disinkronkan dari Firebase!', 'success');
+                        } else if (localUpdated > cloudUpdated) {
+                            await pushDataToCloud(localUpdated);
+                        }
+                    }
+
+                    updateSyncUI('online', 'Cloud Aktif');
+                    const timeEl = document.getElementById('last-sync-time');
+                    if (timeEl) {
+                        const d = new Date();
+                        timeEl.textContent = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
+                    }
+                } else {
+                    updateSyncUI('offline', 'Mode Lokal');
+                }
+            } catch (err) {
+                updateSyncUI('offline', 'Mode Lokal');
+                if (isManual) showToast('Gagal terhubung ke server, cek koneksi internet Anda.', 'warning');
+            }
+        }
+
+        function startAutoCloudSync() {
+            const footerSync = document.getElementById('footer-sync-code');
+            if (footerSync) footerSync.textContent = activeSyncCode;
+
+            pullDataFromCloud(false);
+
+            if (cloudSyncInterval) clearInterval(cloudSyncInterval);
+            cloudSyncInterval = setInterval(() => {
+                if (!document.hidden) {
+                    pullDataFromCloud(false);
+                }
+            }, 3500);
+        }
+
+        function openSyncModal() {
+            document.getElementById('brand-name-input').value = activeBrandName;
+            document.getElementById('sync-code-input').value = activeSyncCode;
+            const modal = document.getElementById('sync-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeSyncModal() {
+            const modal = document.getElementById('sync-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function saveSyncCode() {
+            const rawVal = document.getElementById('sync-code-input').value.trim();
+            if (!rawVal) {
+                showToast('Kode sinkronisasi tidak boleh kosong!', 'warning');
+                return;
+            }
+            activeSyncCode = rawVal;
+            localStorage.setItem(STORAGE_KEYS.SYNC_CODE, activeSyncCode);
+            localStorage.setItem(STORAGE_KEYS.LAST_UPDATED, '0');
+            const footerSync = document.getElementById('footer-sync-code');
+            if (footerSync) footerSync.textContent = activeSyncCode;
+
+            closeSyncModal();
+            showToast(`Kode ruang diubah ke "${activeSyncCode}"`, 'info');
+            pullDataFromCloud(true);
+        }
+
+        function forceManualSync() {
+            pullDataFromCloud(true);
+        }
+
+        // --- 4. HELPER FORMAT & TANGGAL ---
+        function formatRupiah(num) {
+            return 'Rp ' + (Number(num) || 0).toLocaleString('id-ID');
+        }
+
+        function formatCompactRupiah(num) {
+            const val = Number(num) || 0;
+            if (val >= 1000000) {
+                const jt = val / 1000000;
+                return 'Rp ' + (Number.isInteger(jt) ? jt : jt.toFixed(1).replace('.', ',')) + ' jt';
+            }
+            if (val >= 1000) {
+                return 'Rp ' + Math.round(val / 1000) + ' rb';
+            }
+            return 'Rp ' + val;
+        }
+
+        function getPeriodKey(year, monthIndex) {
+            return `${year}-${String(monthIndex + 1).padStart(2, '0')}`;
+        }
+
+        function formatPeriodLabel(periodStr) {
+            if (!periodStr || !periodStr.includes('-')) return periodStr || '-';
+            const [y, m] = periodStr.split('-');
+            const mIdx = parseInt(m, 10) - 1;
+            return `${MONTH_NAMES[mIdx] || m} ${y}`;
+        }
+
+        function formatDateInput(dateObj) {
+            const y = dateObj.getFullYear();
+            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const d = String(dateObj.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        function formatDisplayDate(dateStr) {
+            if (!dateStr) return '-';
+            const parts = dateStr.split('-');
+            if (parts.length !== 3) return dateStr;
+            const day = parseInt(parts[2], 10);
+            const monthIdx = parseInt(parts[1], 10) - 1;
+            return `${day} ${MONTH_NAMES[monthIdx]?.slice(0, 3) || parts[1]} ${parts[0]}`;
+        }
+
+        function formatWhatsAppPhone(phone) {
+            if (!phone) return '';
+            let clean = phone.replace(/\D/g, '');
+            if (clean.startsWith('0')) {
+                clean = '62' + clean.slice(1);
+            } else if (!clean.startsWith('62')) {
+                clean = '62' + clean;
+            }
+            return clean;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bgColors = {
+                success: 'bg-teal-700 text-white',
+                info: 'bg-cyan-700 text-white',
+                warning: 'bg-amber-600 text-white',
+                error: 'bg-rose-600 text-white'
+            };
+            const icons = {
+                success: 'fa-circle-check',
+                info: 'fa-circle-info',
+                warning: 'fa-triangle-exclamation',
+                error: 'fa-circle-xmark'
+            };
+
+            toast.className = `${bgColors[type] || bgColors.success} px-4 py-3 rounded-xl shadow-lg flex items-center gap-2.5 text-xs sm:text-sm font-medium pointer-events-auto modal-animate`;
+            toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.success}"></i><span>${escapeHtml(message)}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3200);
+        }
+
+        // --- 5. PENGATURAN FILTER PERIODE & LAYOUT KAMAR ---
+        function initPeriodControls() {
+            const monthSelect = document.getElementById('filter-month');
+            const yearSelect = document.getElementById('filter-year');
+            const histMonthSelect = document.getElementById('history-filter-month');
+            const histYearSelect = document.getElementById('history-filter-year');
+
+            const currentYear = now.getFullYear();
+            yearSelect.innerHTML = '';
+            histYearSelect.innerHTML = '<option value="all">Semua Tahun</option>';
+
+            for (let y = currentYear - 2; y <= currentYear + 2; y++) {
+                const opt = document.createElement('option');
+                opt.value = y;
+                opt.textContent = y;
+                yearSelect.appendChild(opt);
+
+                const histOpt = document.createElement('option');
+                histOpt.value = String(y);
+                histOpt.textContent = y;
+                histYearSelect.appendChild(histOpt);
+            }
+
+            monthSelect.value = selectedMonth;
+            yearSelect.value = selectedYear;
+            histMonthSelect.value = historyFilterMonth;
+            histYearSelect.value = historyFilterYear;
+
+            const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const todayFormatted = `${dayNames[now.getDay()]}, ${now.getDate()} ${MONTH_NAMES[now.getMonth()]} ${now.getFullYear()}`;
+            document.getElementById('today-date-text').textContent = todayFormatted;
+            document.getElementById('footer-year').textContent = currentYear;
+
+            monthSelect.addEventListener('change', (e) => {
+                selectedMonth = parseInt(e.target.value, 10);
+                historyFilterMonth = String(selectedMonth);
+                histMonthSelect.value = historyFilterMonth;
+                renderAll();
+            });
+
+            yearSelect.addEventListener('change', (e) => {
+                selectedYear = parseInt(e.target.value, 10);
+                historyFilterYear = String(selectedYear);
+                histYearSelect.value = historyFilterYear;
+                renderAll();
+            });
+
+            histMonthSelect.addEventListener('change', (e) => {
+                historyFilterMonth = e.target.value;
+                renderHistoryTable();
+            });
+
+            histYearSelect.addEventListener('change', (e) => {
+                historyFilterYear = e.target.value;
+                renderHistoryTable();
+            });
+
+            updateLayoutButtonsUI();
+        }
+
+        function resetToCurrentPeriod() {
+            const freshNow = new Date();
+            selectedMonth = freshNow.getMonth();
+            selectedYear = freshNow.getFullYear();
+            document.getElementById('filter-month').value = selectedMonth;
+            document.getElementById('filter-year').value = selectedYear;
+
+            historyFilterMonth = String(selectedMonth);
+            historyFilterYear = String(selectedYear);
+            document.getElementById('history-filter-month').value = historyFilterMonth;
+            document.getElementById('history-filter-year').value = historyFilterYear;
+
+            renderAll();
+            showToast(`Menampilkan periode berjalan: ${MONTH_NAMES[selectedMonth]} ${selectedYear}`, 'info');
+        }
+
+        function setHistoryToCurrentMonth() {
+            const freshNow = new Date();
+            historyFilterMonth = String(freshNow.getMonth());
+            historyFilterYear = String(freshNow.getFullYear());
+            document.getElementById('history-filter-month').value = historyFilterMonth;
+            document.getElementById('history-filter-year').value = historyFilterYear;
+            renderHistoryTable();
+        }
+
+        function setHistoryToAll() {
+            historyFilterMonth = 'all';
+            historyFilterYear = 'all';
+            document.getElementById('history-filter-month').value = 'all';
+            document.getElementById('history-filter-year').value = 'all';
+            renderHistoryTable();
+        }
+
+        function setRoomLayout(mode) {
+            roomLayoutMode = mode;
+            localStorage.setItem(STORAGE_KEYS.LAYOUT, mode);
+            updateLayoutButtonsUI();
+            renderRooms();
+        }
+
+        function updateLayoutButtonsUI() {
+            const btnDetail = document.getElementById('btn-view-detail');
+            const btnSmall = document.getElementById('btn-view-small');
+            const container = document.getElementById('rooms-container');
+
+            if (roomLayoutMode === 'detail') {
+                btnDetail.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer bg-white text-teal-700 shadow-xs';
+                btnSmall.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer text-slate-600 hover:text-slate-900';
+                container.className = 'grid grid-cols-1 md:grid-cols-2 gap-5';
+            } else {
+                btnSmall.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer bg-white text-teal-700 shadow-xs';
+                btnDetail.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer text-slate-600 hover:text-slate-900';
+                container.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3.5';
+            }
+        }
+
+        // --- 6. PERHITUNGAN STATUS PEMBAYARAN & JATUH TEMPO ---
+        function getRoomPaymentSummary(room, periodKey) {
+            const roomPayments = paymentsData.filter(p => p.roomId === room.id && p.period === periodKey);
+            const totalPaid = roomPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+            const price = Number(room.price) || 0;
+            const remaining = Math.max(0, price - totalPaid);
+            const percentage = price > 0 ? Math.min(100, Math.round((totalPaid / price) * 100)) : (totalPaid > 0 ? 100 : 0);
+
+            let payStatus = 'unpaid';
+            if (room.status === 'empty') {
+                payStatus = 'empty';
+            } else if (totalPaid >= price && price > 0) {
+                payStatus = 'paid';
+            } else if (totalPaid > 0) {
+                payStatus = 'partial';
+            }
+
+            return { totalPaid, remaining, percentage, payStatus, paymentsCount: roomPayments.length };
+        }
+
+        function getDueDateInfo(dueDay, payStatus) {
+            if (payStatus === 'empty' || payStatus === 'paid') return null;
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const maxDaysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+            const safeDueDay = Math.min(Math.max(1, Number(dueDay) || 1), maxDaysInMonth);
+            const dueDate = new Date(selectedYear, selectedMonth, safeDueDay);
+            dueDate.setHours(0, 0, 0, 0);
+
+            const diffTime = dueDate.getTime() - today.getTime();
+            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays < 0) {
+                return {
+                    label: `Terlambat ${Math.abs(diffDays)} hari (Tgl ${safeDueDay})`,
+                    shortLabel: `Telat ${Math.abs(diffDays)}h`,
+                    badgeClass: 'bg-rose-50 text-rose-700 border-rose-200',
+                    icon: 'fa-circle-exclamation'
+                };
+            } else if (diffDays === 0) {
+                return {
+                    label: `Jatuh Tempo Hari Ini! (Tgl ${safeDueDay})`,
+                    shortLabel: 'Hari Ini!',
+                    badgeClass: 'bg-amber-100 text-amber-800 border-amber-300 font-semibold',
+                    icon: 'fa-bell'
+                };
+            } else if (diffDays <= 5) {
+                return {
+                    label: `H-${diffDays} jatuh tempo (Tgl ${safeDueDay})`,
+                    shortLabel: `H-${diffDays}`,
+                    badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
+                    icon: 'fa-clock'
+                };
+            }
+
+            return {
+                label: `Jatuh tempo tgl ${safeDueDay}`,
+                shortLabel: `Tgl ${safeDueDay}`,
+                badgeClass: 'bg-slate-100 text-slate-600 border-slate-200',
+                icon: 'fa-calendar-day'
+            };
+        }
+
+        // --- 7. RENDER UTAMA ---
+        function renderAll() {
+            const periodKey = getPeriodKey(selectedYear, selectedMonth);
+            const periodLabel = `${MONTH_NAMES[selectedMonth]} ${selectedYear}`;
+            document.getElementById('period-label-badge').textContent = periodLabel;
+            document.getElementById('rooms-section-title').textContent = `Status ${roomsData.length} Kamar Kost`;
+
+            renderStats(periodKey);
+            renderRooms(periodKey);
+            renderHistoryTable();
+            renderExpenseTable(periodKey);
+        }
+
+        function renderStats(periodKey) {
+            const totalRooms = roomsData.length;
+            let occupiedCount = 0;
+            let emptyCount = 0;
+            let totalPaidAmount = 0;
+            let paidRoomCount = 0;
+            let partialRoomCount = 0;
+            let unpaidRoomCount = 0;
+            let totalRemainingAmount = 0;
+
+            roomsData.forEach(room => {
+                if (room.status === 'empty') {
+                    emptyCount++;
+                } else {
+                    occupiedCount++;
+                    const summary = getRoomPaymentSummary(room, periodKey);
+                    totalPaidAmount += summary.totalPaid;
+                    totalRemainingAmount += summary.remaining;
+
+                    if (summary.payStatus === 'paid') {
+                        paidRoomCount++;
+                    } else if (summary.payStatus === 'partial') {
+                        partialRoomCount++;
+                        unpaidRoomCount++;
+                    } else {
+                        unpaidRoomCount++;
+                    }
+                }
+            });
+
+            const periodExpenses = expensesData.filter(exp => exp.period === periodKey);
+            const totalExpenseAmount = periodExpenses.reduce((sum, exp) => sum + (Number(exp.amount) || 0), 0);
+            const netProfitAmount = totalPaidAmount - totalExpenseAmount;
+
+            document.getElementById('stat-occupied').textContent = `${occupiedCount} / ${totalRooms}`;
+            document.getElementById('stat-empty-note').textContent = emptyCount > 0 ? `${emptyCount} kamar kosong` : 'Semua kamar terisi penuh';
+
+            document.getElementById('stat-paid-amount').textContent = formatRupiah(totalPaidAmount);
+            document.getElementById('stat-paid-count').textContent = `${paidRoomCount} Lunas • ${partialRoomCount} Cicil`;
+
+            document.getElementById('stat-expense-amount').textContent = formatRupiah(totalExpenseAmount);
+            document.getElementById('stat-expense-count').textContent = `${periodExpenses.length} Item Utilities`;
+
+            const netProfitEl = document.getElementById('stat-net-profit');
+            netProfitEl.textContent = formatRupiah(netProfitAmount);
+            netProfitEl.className = `text-base sm:text-[17px] font-bold mt-0.5 leading-snug break-words ${netProfitAmount < 0 ? 'text-rose-600' : 'text-teal-700'}`;
+
+            document.getElementById('stat-unpaid-amount').textContent = formatRupiah(totalRemainingAmount);
+            document.getElementById('stat-unpaid-count').textContent = `${unpaidRoomCount} Kamar belum lunas`;
+        }
+
+        function renderRooms(periodKey = getPeriodKey(selectedYear, selectedMonth)) {
+            const container = document.getElementById('rooms-container');
+            container.innerHTML = '';
+
+            if (roomsData.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full bg-white border-2 border-dashed border-teal-200 rounded-2xl p-8 text-center">
+                        <div class="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mx-auto text-xl mb-3">
+                            <i class="fa-solid fa-door-open"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-800 text-base">Belum Ada Kamar Terdaftar</h3>
+                        <p class="text-xs text-slate-500 mt-1 mb-4">Klik tombol "+ Tambah Kamar" untuk mulai menambahkan kamar kost Anda.</p>
+                        <button onclick="openAddRoomModal()" class="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-xl transition cursor-pointer">
+                            + Tambah Kamar Pertama
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            roomsData.forEach((room, index) => {
+                const summary = getRoomPaymentSummary(room, periodKey);
+                const dueInfo = getDueDateInfo(room.dueDay, summary.payStatus);
+
+                if (roomLayoutMode === 'small') {
+                    container.appendChild(createSmallRoomCard(room, index, summary, dueInfo));
+                } else {
+                    container.appendChild(createDetailRoomCard(room, index, summary, dueInfo));
+                }
+            });
+        }
+
+        function createDetailRoomCard(room, index, summary, dueInfo) {
+            const card = document.createElement('div');
+            const roomNumLabel = String(index + 1).padStart(2, '0');
+
+            let borderClass = 'border-teal-100';
+            let statusBadge = '';
+
+            if (summary.payStatus === 'empty') {
+                statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">Kamar Kosong</span>`;
+            } else if (summary.payStatus === 'paid') {
+                borderClass = 'border-emerald-200';
+                statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Lunas</span>`;
+            } else if (summary.payStatus === 'partial') {
+                borderClass = 'border-amber-300';
+                statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1"><i class="fa-solid fa-chart-pie"></i> Cicil (${summary.percentage}%)</span>`;
+            } else {
+                borderClass = 'border-rose-200';
+                statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1"><i class="fa-solid fa-circle-xmark"></i> Belum Bayar</span>`;
+            }
+
+            card.className = `bg-white rounded-2xl border ${borderClass} shadow-xs p-5 flex flex-col justify-between transition hover:shadow-md`;
+
+            if (room.status === 'empty') {
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-3">
+                                <div class="w-11 h-11 rounded-xl bg-slate-100 text-slate-500 font-bold flex items-center justify-center text-base">
+                                    ${roomNumLabel}
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-slate-900 text-base">${escapeHtml(room.name)}</h3>
+                                    <p class="text-xs text-slate-500">Tarif: ${formatRupiah(room.price)} / bln</p>
+                                </div>
+                            </div>
+                            ${statusBadge}
+                        </div>
+
+                        <div class="my-5 py-6 px-4 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-center">
+                            <p class="text-sm font-medium text-slate-600">Kamar sedang kosong</p>
+                            <p class="text-xs text-slate-400 mt-0.5">Klik Edit untuk mengisi data penghuni baru</p>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-100 flex items-center justify-end">
+                        <button onclick="openEditModal('${room.id}')" class="px-4 py-2 bg-teal-50 hover:bg-teal-100 text-teal-700 text-xs font-semibold rounded-xl border border-teal-200 transition flex items-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-user-plus"></i>
+                            <span>Isi Penghuni / Edit</span>
+                        </button>
+                    </div>
+                `;
+                return card;
+            }
+
+            const progressBarColor = summary.payStatus === 'paid' ? 'bg-emerald-500' : (summary.payStatus === 'partial' ? 'bg-amber-500' : 'bg-slate-200');
+
+            card.innerHTML = `
+                <div>
+                    <!-- Header Kartu -->
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="flex items-center gap-3">
+                            <div class="w-11 h-11 rounded-xl ${summary.payStatus === 'paid' ? 'bg-emerald-600 text-white' : 'bg-teal-600 text-white'} font-bold flex items-center justify-center text-base shadow-xs">
+                                ${roomNumLabel}
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h3 class="font-bold text-slate-900 text-base">${escapeHtml(room.name)}</h3>
+                                    ${dueInfo ? `<span class="text-[11px] px-2 py-0.5 rounded-md border ${dueInfo.badgeClass} flex items-center gap-1"><i class="fa-solid ${dueInfo.icon}"></i> ${dueInfo.label}</span>` : ''}
+                                </div>
+                                <p class="text-sm font-semibold text-slate-700 mt-0.5">${escapeHtml(room.tenantName)}</p>
+                            </div>
+                        </div>
+                        ${statusBadge}
+                    </div>
+
+                    <!-- Info Harga & Kontak -->
+                    <div class="mt-4 grid grid-cols-2 gap-2.5 bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs">
+                        <div>
+                            <span class="text-slate-400 block">Tarif Sewa / Bulan</span>
+                            <span class="font-bold text-slate-800 text-sm">${formatRupiah(room.price)}</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block">WhatsApp Penghuni</span>
+                            <span class="font-medium text-slate-700">${escapeHtml(room.tenantPhone || '-')}</span>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar Cicilan / Pelunasan -->
+                    <div class="mt-4 space-y-1.5">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-slate-500">Terbayar: <strong class="text-emerald-600">${formatRupiah(summary.totalPaid)}</strong></span>
+                            <span class="text-slate-500">Sisa: <strong class="${summary.remaining > 0 ? 'text-rose-600' : 'text-slate-700'}">${formatRupiah(summary.remaining)}</strong></span>
+                        </div>
+                        <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60">
+                            <div class="${progressBarColor} h-full rounded-full transition-all duration-300" style="width: ${summary.percentage}%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tombol Aksi -->
+                <div class="mt-5 pt-3.5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                    <button onclick="openPaymentModal('${room.id}')" class="flex-1 min-w-[130px] px-3.5 py-2.5 ${summary.payStatus === 'paid' ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-teal-600 hover:bg-teal-700 text-white shadow-xs'} text-xs font-semibold rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid ${summary.payStatus === 'paid' ? 'fa-plus-circle' : 'fa-money-bill-wave'}"></i>
+                        <span>${summary.payStatus === 'paid' ? 'Tambah Bayar' : 'Bayar / Cicil'}</span>
+                    </button>
+
+                    <div class="flex items-center gap-2">
+                        <button onclick="sendWhatsAppReminder('${room.id}')" class="px-3.5 py-2.5 bg-green-50 hover:bg-green-100 text-green-700 text-xs font-semibold rounded-xl border border-green-200 transition flex items-center gap-1.5 cursor-pointer" title="Kirim Pesan WhatsApp">
+                            <i class="fa-brands fa-whatsapp text-sm"></i>
+                            <span>WA</span>
+                        </button>
+
+                        <button onclick="openEditModal('${room.id}')" class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition flex items-center gap-1.5 cursor-pointer" title="Edit Kamar & Penghuni">
+                            <i class="fa-solid fa-pen"></i>
+                            <span>Edit</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        function createSmallRoomCard(room, index, summary, dueInfo) {
+            const card = document.createElement('div');
+            const roomNumLabel = String(index + 1).padStart(2, '0');
+
+            let badgeBg = 'bg-rose-50 text-rose-700 border-rose-200';
+            let badgeText = 'Belum';
+            let iconBg = 'bg-teal-600 text-white';
+
+            if (summary.payStatus === 'empty') {
+                badgeBg = 'bg-slate-100 text-slate-600 border-slate-200';
+                badgeText = 'Kosong';
+                iconBg = 'bg-slate-200 text-slate-600';
+            } else if (summary.payStatus === 'paid') {
+                badgeBg = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                badgeText = 'Lunas';
+                iconBg = 'bg-emerald-600 text-white';
+            } else if (summary.payStatus === 'partial') {
+                badgeBg = 'bg-amber-50 text-amber-700 border-amber-200';
+                badgeText = `Cicil ${summary.percentage}%`;
+                iconBg = 'bg-amber-500 text-white';
+            }
+
+            card.className = 'bg-white rounded-2xl border border-teal-100 shadow-xs p-3.5 flex flex-col justify-between hover:shadow-md transition';
+
+            card.innerHTML = `
+                <div>
+                    <div class="flex items-center justify-between gap-1.5 mb-2.5">
+                        <div class="w-8 h-8 rounded-lg ${iconBg} font-bold text-xs flex items-center justify-center shrink-0">
+                            ${roomNumLabel}
+                        </div>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${badgeBg} truncate">
+                            ${badgeText}
+                        </span>
+                    </div>
+
+                    <h3 class="font-bold text-slate-900 text-sm truncate" title="${escapeHtml(room.name)}">${escapeHtml(room.name)}</h3>
+                    <p class="text-xs text-slate-600 font-medium truncate mt-0.5" title="${escapeHtml(room.tenantName || 'Kosong')}">
+                        ${room.status === 'empty' ? '<span class="italic text-slate-400">Belum terisi</span>' : escapeHtml(room.tenantName)}
+                    </p>
+
+                    <div class="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                        <span class="font-semibold text-slate-700">${formatCompactRupiah(room.price)}</span>
+                        ${dueInfo ? `<span class="text-[10px] px-1.5 py-0.5 rounded border ${dueInfo.badgeClass}">${dueInfo.shortLabel}</span>` : ''}
+                    </div>
+                </div>
+
+                <!-- 3 Tombol Ikon Mini -->
+                <div class="mt-3 pt-2 border-t border-slate-100 grid grid-cols-3 gap-1.5">
+                    <button onclick="${room.status === 'empty' ? `openEditModal('${room.id}')` : `openPaymentModal('${room.id}')`}" class="py-1.5 rounded-lg ${room.status === 'empty' ? 'bg-slate-100 text-slate-400' : 'bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200'} text-xs flex items-center justify-center transition cursor-pointer" title="${room.status === 'empty' ? 'Kamar Kosong' : 'Bayar / Cicil'}">
+                        <i class="fa-solid fa-money-bill-wave"></i>
+                    </button>
+                    <button onclick="${room.status === 'empty' ? `openEditModal('${room.id}')` : `sendWhatsAppReminder('${room.id}')`}" class="py-1.5 rounded-lg ${room.status === 'empty' ? 'bg-slate-100 text-slate-400' : 'bg-green-50 hover:bg-green-100 text-green-700 border border-green-200'} text-xs flex items-center justify-center transition cursor-pointer" title="Kirim WA">
+                        <i class="fa-brands fa-whatsapp"></i>
+                    </button>
+                    <button onclick="openEditModal('${room.id}')" class="py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs flex items-center justify-center transition cursor-pointer" title="Edit Kamar">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                </div>
+            `;
+
+            return card;
+        }
+
+        function renderHistoryTable() {
+            const tbody = document.getElementById('history-table-body');
+            const summaryBadge = document.getElementById('history-summary-badge');
+
+            const filtered = paymentsData.filter(item => {
+                if (!item.period) return false;
+                const [y, m] = item.period.split('-');
+                const mIdxStr = String(parseInt(m, 10) - 1);
+
+                const matchYear = (historyFilterYear === 'all') || (y === historyFilterYear);
+                const matchMonth = (historyFilterMonth === 'all') || (mIdxStr === historyFilterMonth);
+                return matchYear && matchMonth;
+            });
+
+            filtered.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+            const totalFilteredNominal = filtered.reduce((acc, item) => acc + (Number(item.amount) || 0), 0);
+            summaryBadge.textContent = `${filtered.length} Transaksi • ${formatRupiah(totalFilteredNominal)}`;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="py-10 px-5 text-center text-slate-400 text-xs">
+                            <i class="fa-regular fa-folder-open text-2xl mb-2 block text-slate-300"></i>
+                            Belum ada riwayat pembayaran pada filter bulan/tahun yang dipilih.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(item => `
+                <tr class="hover:bg-teal-50/40 transition">
+                    <td class="py-3.5 px-5 whitespace-nowrap text-xs font-medium text-slate-700">
+                        ${formatDisplayDate(item.date)}
+                    </td>
+                    <td class="py-3.5 px-5 whitespace-nowrap">
+                        <span class="text-[11px] font-semibold px-2.5 py-1 rounded-md bg-teal-50 text-teal-700 border border-teal-100">
+                            ${formatPeriodLabel(item.period)}
+                        </span>
+                    </td>
+                    <td class="py-3.5 px-5">
+                        <div class="font-semibold text-slate-800 text-xs sm:text-sm">${escapeHtml(item.roomName)}</div>
+                        <div class="text-xs text-slate-500">${escapeHtml(item.tenantName || '-')}</div>
+                    </td>
+                    <td class="py-3.5 px-5 text-xs text-slate-600">
+                        ${escapeHtml(item.note || 'Pembayaran Sewa')}
+                    </td>
+                    <td class="py-3.5 px-5 whitespace-nowrap text-right font-bold text-emerald-600 text-xs sm:text-sm">
+                        ${formatRupiah(item.amount)}
+                    </td>
+                    <td class="py-3.5 px-5 whitespace-nowrap text-center">
+                        <button onclick="promptDeletePayment('${item.id}')" class="w-8 h-8 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition inline-flex items-center justify-center cursor-pointer" title="Hapus Transaksi Ini">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function getCategoryBadgeHtml(category) {
+            const styles = {
+                'Listrik PLN': 'bg-amber-50 text-amber-700 border-amber-200 fa-bolt',
+                'Air PDAM': 'bg-sky-50 text-sky-700 border-sky-200 fa-droplet',
+                'Internet WiFi': 'bg-teal-50 text-teal-700 border-teal-200 fa-wifi',
+                'Kebersihan & Sampah': 'bg-emerald-50 text-emerald-700 border-emerald-200 fa-broom',
+                'Perbaikan & Maintenance': 'bg-rose-50 text-rose-700 border-rose-200 fa-screwdriver-wrench',
+                'Lainnya': 'bg-slate-100 text-slate-700 border-slate-200 fa-box-open'
+            };
+            const raw = styles[category] || styles['Lainnya'];
+            const parts = raw.split(' ');
+            const iconClass = parts.pop();
+            const colorClasses = parts.join(' ');
+            return `<span class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-md border ${colorClasses}"><i class="fa-solid ${iconClass}"></i> ${escapeHtml(category)}</span>`;
+        }
+
+        function renderExpenseTable(periodKey = getPeriodKey(selectedYear, selectedMonth)) {
+            const tbody = document.getElementById('expense-table-body');
+            const summaryBadge = document.getElementById('expense-summary-badge');
+
+            const filtered = expensesData.filter(item => item.period === periodKey);
+            filtered.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+            const totalExpense = filtered.reduce((acc, item) => acc + (Number(item.amount) || 0), 0);
+            summaryBadge.textContent = `${filtered.length} Item • ${formatRupiah(totalExpense)}`;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="py-8 px-5 text-center text-slate-400 text-xs">
+                            <i class="fa-solid fa-bolt text-xl mb-1.5 block text-slate-300"></i>
+                            Belum ada pengeluaran utilities (Listrik, Air, WiFi, dll) yang dicatat pada periode ${MONTH_NAMES[selectedMonth]} ${selectedYear}.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(item => `
+                <tr class="hover:bg-teal-50/40 transition">
+                    <td class="py-3.5 px-5 whitespace-nowrap text-xs font-medium text-slate-700">
+                        ${formatDisplayDate(item.date)}
+                    </td>
+                    <td class="py-3.5 px-5 whitespace-nowrap">
+                        ${getCategoryBadgeHtml(item.category)}
+                    </td>
+                    <td class="py-3.5 px-5 text-xs text-slate-600">
+                        ${escapeHtml(item.note || '-')}
+                    </td>
+                    <td class="py-3.5 px-5 whitespace-nowrap text-right font-bold text-amber-600 text-xs sm:text-sm">
+                        ${formatRupiah(item.amount)}
+                    </td>
+                    <td class="py-3.5 px-5 whitespace-nowrap text-center">
+                        <button onclick="promptDeleteExpense('${item.id}')" class="w-8 h-8 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition inline-flex items-center justify-center cursor-pointer" title="Hapus Pengeluaran Ini">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // --- 8. MODAL CATAT & HAPUS BIAYA PENGELUARAN KOST ---
+        function openExpenseModal() {
+            document.getElementById('expense-modal-subtitle').textContent = `Periode Tagihan: ${MONTH_NAMES[selectedMonth]} ${selectedYear}`;
+            document.getElementById('expense-category').value = 'Listrik PLN';
+            document.getElementById('expense-amount').value = '';
+            document.getElementById('expense-date').value = formatDateInput(new Date());
+            document.getElementById('expense-note').value = '';
+
+            const modal = document.getElementById('expense-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeExpenseModal() {
+            const modal = document.getElementById('expense-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        document.getElementById('expense-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const category = document.getElementById('expense-category').value;
+            const amount = parseInt(document.getElementById('expense-amount').value, 10) || 0;
+            const date = document.getElementById('expense-date').value;
+            const note = document.getElementById('expense-note').value.trim();
+
+            if (amount <= 0) {
+                showToast('Masukkan nominal pengeluaran yang valid!', 'warning');
+                return;
+            }
+
+            const periodKey = getPeriodKey(selectedYear, selectedMonth);
+            const newExpense = {
+                id: 'exp-' + Date.now(),
+                period: periodKey,
+                category,
+                amount,
+                date,
+                note: note || `Biaya ${category}`
+            };
+
+            expensesData.push(newExpense);
+            saveData(true);
+            closeExpenseModal();
+            renderAll();
+            showToast(`Pengeluaran ${category} (${formatRupiah(amount)}) berhasil dicatat!`, 'success');
+        });
+
+        function promptDeleteExpense(expenseId) {
+            const expense = expensesData.find(e => e.id === expenseId);
+            if (!expense) return;
+
+            document.getElementById('confirm-modal-title').textContent = 'Hapus Pengeluaran Ini?';
+            document.getElementById('confirm-modal-desc').textContent = `Biaya ${expense.category} sebesar ${formatRupiah(expense.amount)} akan dihapus dan laba bersih akan dihitung ulang.`;
+
+            pendingConfirmAction = () => {
+                expensesData = expensesData.filter(e => e.id !== expenseId);
+                saveData(true);
+                closeConfirmModal();
+                renderAll();
+                showToast('Catatan pengeluaran berhasil dihapus.', 'info');
+            };
+
+            const modal = document.getElementById('confirm-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        // --- 9. MODAL TAMBAH KAMAR BARU ---
+        function openAddRoomModal() {
+            const nextNum = String(roomsData.length + 1).padStart(2, '0');
+            document.getElementById('add-room-name').value = `Kamar ${nextNum}`;
+            document.getElementById('add-room-status').value = 'occupied';
+            document.getElementById('add-tenant-name').value = '';
+            document.getElementById('add-tenant-phone').value = '';
+            document.getElementById('add-room-price').value = 1200000;
+            document.getElementById('add-room-due').value = 5;
+            toggleAddTenantFields();
+
+            const modal = document.getElementById('add-room-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeAddRoomModal() {
+            const modal = document.getElementById('add-room-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function toggleAddTenantFields() {
+            const status = document.getElementById('add-room-status').value;
+            const group = document.getElementById('add-tenant-fields-group');
+            group.style.opacity = status === 'empty' ? '0.45' : '1';
+        }
+
+        document.getElementById('add-room-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('add-room-name').value.trim();
+            const status = document.getElementById('add-room-status').value;
+            const tenantName = document.getElementById('add-tenant-name').value.trim();
+            const tenantPhone = document.getElementById('add-tenant-phone').value.trim();
+            const price = parseInt(document.getElementById('add-room-price').value, 10) || 0;
+            const dueDay = parseInt(document.getElementById('add-room-due').value, 10) || 1;
+
+            if (!name) {
+                showToast('Nama kamar wajib diisi!', 'warning');
+                return;
+            }
+            if (status === 'occupied' && !tenantName) {
+                showToast('Masukkan nama penghuni atau pilih status Kosong.', 'warning');
+                return;
+            }
+
+            const newRoom = {
+                id: 'room-' + Date.now(),
+                name,
+                status,
+                tenantName: status === 'occupied' ? tenantName : '',
+                tenantPhone: status === 'occupied' ? tenantPhone : '',
+                price,
+                dueDay: Math.min(31, Math.max(1, dueDay))
+            };
+
+            roomsData.push(newRoom);
+            saveData(true);
+            closeAddRoomModal();
+            renderAll();
+            showToast(`${newRoom.name} berhasil ditambahkan!`, 'success');
+        });
+
+        // --- 10. MODAL EDIT & HAPUS KAMAR ---
+        function openEditModal(roomId) {
+            const room = roomsData.find(r => r.id === roomId);
+            if (!room) return;
+
+            document.getElementById('edit-room-id').value = room.id;
+            document.getElementById('edit-modal-title').innerHTML = `<i class="fa-solid fa-pen-to-square text-teal-600"></i> <span>Edit ${escapeHtml(room.name)}</span>`;
+            document.getElementById('edit-room-name').value = room.name;
+            document.getElementById('edit-room-status').value = room.status;
+            document.getElementById('edit-tenant-name').value = room.tenantName || '';
+            document.getElementById('edit-tenant-phone').value = room.tenantPhone || '';
+            document.getElementById('edit-room-price').value = room.price || 0;
+            document.getElementById('edit-room-due').value = room.dueDay || 1;
+
+            toggleTenantFields();
+
+            const modal = document.getElementById('edit-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeEditModal() {
+            const modal = document.getElementById('edit-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function toggleTenantFields() {
+            const status = document.getElementById('edit-room-status').value;
+            const group = document.getElementById('tenant-fields-group');
+            group.style.opacity = status === 'empty' ? '0.45' : '1';
+        }
+
+        document.getElementById('edit-room-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const roomId = document.getElementById('edit-room-id').value;
+            const roomIndex = roomsData.findIndex(r => r.id === roomId);
+            if (roomIndex === -1) return;
+
+            const name = document.getElementById('edit-room-name').value.trim();
+            const status = document.getElementById('edit-room-status').value;
+            const tenantName = document.getElementById('edit-tenant-name').value.trim();
+            const tenantPhone = document.getElementById('edit-tenant-phone').value.trim();
+            const price = parseInt(document.getElementById('edit-room-price').value, 10) || 0;
+            const dueDay = parseInt(document.getElementById('edit-room-due').value, 10) || 1;
+
+            if (!name) {
+                showToast('Nama kamar tidak boleh kosong!', 'warning');
+                return;
+            }
+            if (status === 'occupied' && !tenantName) {
+                showToast('Nama penghuni wajib diisi jika status kamar Terisi.', 'warning');
+                return;
+            }
+
+            roomsData[roomIndex] = {
+                ...roomsData[roomIndex],
+                name,
+                status,
+                tenantName: status === 'occupied' ? tenantName : '',
+                tenantPhone: status === 'occupied' ? tenantPhone : '',
+                price,
+                dueDay: Math.min(31, Math.max(1, dueDay))
+            };
+
+            saveData(true);
+            closeEditModal();
+            renderAll();
+            showToast(`Data ${name} berhasil diperbarui!`, 'success');
+        });
+
+        function promptDeleteRoom() {
+            const roomId = document.getElementById('edit-room-id').value;
+            const room = roomsData.find(r => r.id === roomId);
+            if (!room) return;
+
+            document.getElementById('confirm-modal-title').textContent = `Hapus ${room.name}?`;
+            document.getElementById('confirm-modal-desc').textContent = 'Kamar ini akan dihapus dari daftar pemantauan kost.';
+
+            pendingConfirmAction = () => {
+                roomsData = roomsData.filter(r => r.id !== roomId);
+                saveData(true);
+                closeConfirmModal();
+                closeEditModal();
+                renderAll();
+                showToast(`${room.name} telah dihapus.`, 'info');
+            };
+
+            const modal = document.getElementById('confirm-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        // --- 11. MODAL PEMBAYARAN CUSTOM / CICILAN ---
+        function openPaymentModal(roomId) {
+            const room = roomsData.find(r => r.id === roomId);
+            if (!room || room.status === 'empty') return;
+
+            const periodKey = getPeriodKey(selectedYear, selectedMonth);
+            const summary = getRoomPaymentSummary(room, periodKey);
+            currentModalRemaining = summary.remaining > 0 ? summary.remaining : room.price;
+
+            document.getElementById('pay-room-id').value = room.id;
+            document.getElementById('pay-modal-subtitle').textContent = `${room.name} • ${room.tenantName} (${MONTH_NAMES[selectedMonth]} ${selectedYear})`;
+            document.getElementById('pay-summary-total').textContent = formatRupiah(room.price);
+            document.getElementById('pay-summary-paid').textContent = formatRupiah(summary.totalPaid);
+            document.getElementById('pay-summary-remaining').textContent = formatRupiah(summary.remaining);
+
+            document.getElementById('pay-amount').value = summary.remaining > 0 ? summary.remaining : '';
+            document.getElementById('pay-date').value = formatDateInput(new Date());
+            document.getElementById('pay-note').value = summary.remaining > 0
+                ? (summary.totalPaid > 0 ? 'Pelunasan Sisa Sewa' : 'Pembayaran Sewa Kost')
+                : 'Pembayaran Tambahan';
+
+            const modal = document.getElementById('payment-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closePaymentModal() {
+            const modal = document.getElementById('payment-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function fillHalfRemaining() {
+            const half = Math.max(1000, Math.round(currentModalRemaining / 2));
+            document.getElementById('pay-amount').value = half;
+            document.getElementById('pay-note').value = 'Cicilan / DP 50%';
+        }
+
+        function fillFullRemaining() {
+            document.getElementById('pay-amount').value = currentModalRemaining;
+            document.getElementById('pay-note').value = 'Pelunasan Sewa Kost';
+        }
+
+        document.getElementById('payment-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const roomId = document.getElementById('pay-room-id').value;
+            const room = roomsData.find(r => r.id === roomId);
+            if (!room) return;
+
+            const amount = parseInt(document.getElementById('pay-amount').value, 10) || 0;
+            const date = document.getElementById('pay-date').value;
+            const note = document.getElementById('pay-note').value.trim() || 'Pembayaran Sewa';
+
+            if (amount <= 0) {
+                showToast('Masukkan nominal pembayaran yang valid!', 'warning');
+                return;
+            }
+
+            const periodKey = getPeriodKey(selectedYear, selectedMonth);
+            const newPayment = {
+                id: 'pay-' + Date.now(),
+                roomId: room.id,
+                roomName: room.name,
+                tenantName: room.tenantName,
+                period: periodKey,
+                amount,
+                date,
+                note
+            };
+
+            paymentsData.push(newPayment);
+            saveData(true);
+            closePaymentModal();
+            renderAll();
+            showToast(`Pembayaran ${formatRupiah(amount)} untuk ${room.name} tercatat!`, 'success');
+        });
+
+        // --- 12. HAPUS TRANSAKSI RIWAYAT ---
+        function promptDeletePayment(paymentId) {
+            const payment = paymentsData.find(p => p.id === paymentId);
+            if (!payment) return;
+
+            document.getElementById('confirm-modal-title').textContent = 'Hapus Transaksi Ini?';
+            document.getElementById('confirm-modal-desc').textContent = `Transaksi ${formatRupiah(payment.amount)} (${payment.roomName}) akan dihapus dan sisa tagihan kamar akan disesuaikan.`;
+
+            pendingConfirmAction = () => {
+                paymentsData = paymentsData.filter(p => p.id !== paymentId);
+                saveData(true);
+                closeConfirmModal();
+                renderAll();
+                showToast('Transaksi pembayaran berhasil dihapus.', 'info');
+            };
+
+            const modal = document.getElementById('confirm-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeConfirmModal() {
+            const modal = document.getElementById('confirm-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            pendingConfirmAction = null;
+        }
+
+        document.getElementById('confirm-delete-btn').addEventListener('click', function() {
+            if (typeof pendingConfirmAction === 'function') {
+                pendingConfirmAction();
+            }
+        });
+
+        // --- 13. PENGINGAT WHATSAPP OTOMATIS (3 KONDISI) ---
+        function sendWhatsAppReminder(roomId) {
+            const room = roomsData.find(r => r.id === roomId);
+            if (!room || room.status === 'empty') return;
+
+            const waPhone = formatWhatsAppPhone(room.tenantPhone);
+            if (!waPhone) {
+                showToast(`Nomor WhatsApp ${room.tenantName} belum diisi!`, 'warning');
+                openEditModal(room.id);
+                return;
+            }
+
+            const periodKey = getPeriodKey(selectedYear, selectedMonth);
+            const periodLabel = `${MONTH_NAMES[selectedMonth]} ${selectedYear}`;
+            const summary = getRoomPaymentSummary(room, periodKey);
+
+            let message = '';
+            if (summary.payStatus === 'paid') {
+                message = `Halo Kak *${room.tenantName}* (${room.name}),\n\nTerima kasih! Pembayaran kost periode *${periodLabel}* sebesar *${formatRupiah(room.price)}* sudah *LUNAS*.\n\nSalam,\nPengelola ${activeBrandName}`;
+            } else if (summary.payStatus === 'partial') {
+                message = `Halo Kak *${room.tenantName}* (${room.name}),\n\nBerikut rincian pembayaran kost periode *${periodLabel}*:\n• Total Sewa: ${formatRupiah(room.price)}\n• Sudah Masuk (Cicilan): *${formatRupiah(summary.totalPaid)}*\n• Sisa Tagihan: *${formatRupiah(summary.remaining)}*\n\nMohon konfirmasinya jika ada pelunasan ya Kak. Terima kasih!`;
+            } else {
+                message = `Halo Kak *${room.tenantName}* (${room.name}),\n\nSekadar mengingatkan untuk tagihan sewa kost periode *${periodLabel}* sebesar *${formatRupiah(room.price)}* (Jatuh tempo tanggal *${room.dueDay} ${periodLabel}*).\n\nJika sudah transfer mohon kirimkan buktinya ya Kak. Terima kasih!`;
+            }
+
+            const waUrl = `https://wa.me/${waPhone}?text=${encodeURIComponent(message)}`;
+            window.open(waUrl, '_blank', 'noopener,noreferrer');
+        }
+
+        // --- 14. JALANKAN APLIKASI SAAT HALAMAN SIAP ---
+        window.addEventListener('DOMContentLoaded', () => {
+            updateBrandUI();
+            loadDataFromLocal();
+            initPeriodControls();
+            renderAll();
+            startAutoCloudSync();
+        });
+    </script>
+</body>
+</html>
