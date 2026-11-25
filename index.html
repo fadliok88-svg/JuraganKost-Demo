@@ -46,13 +46,17 @@
     <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
 
     <!-- Top Strip Demo Showcase -->
-    <div class="bg-gradient-to-r from-teal-900 via-teal-800 to-emerald-800 text-white px-4 py-2 text-xs font-medium shadow-xs">
+    <div id="demo-top-strip" class="bg-gradient-to-r from-teal-900 via-teal-800 to-emerald-800 text-white px-4 py-2 text-xs font-medium shadow-xs">
         <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
             <div class="flex items-center gap-2">
                 <span class="px-2 py-0.5 bg-amber-400 text-slate-900 font-extrabold rounded text-[10px] uppercase tracking-wider">Live Demo</span>
-                <span>Simulasi Interaktif <strong>JuraganKost</strong> — Coba tambah kamar, cicilan, utilities, & kirim WA.</span>
+                <span>Simulasi Interaktif <strong>JuraganKost</strong> — Coba tambah kamar, cicilan, utilities, & link Google Maps.</span>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
+                <button onclick="openPublicMapsPreview()" class="px-2.5 py-1 bg-emerald-500/30 hover:bg-emerald-500/50 border border-emerald-300/40 rounded-lg text-[11px] font-semibold transition cursor-pointer flex items-center gap-1">
+                    <i class="fa-solid fa-map-location-dot"></i>
+                    <span>Lihat Halaman Publik GMaps</span>
+                </button>
                 <button onclick="resetDemoShowcaseData()" class="px-2.5 py-1 bg-white/15 hover:bg-white/25 rounded-lg text-[11px] font-semibold transition cursor-pointer flex items-center gap-1">
                     <i class="fa-solid fa-rotate-right"></i>
                     <span>Reset Simulasi Awal</span>
@@ -62,11 +66,7 @@
     </div>
 
     <!-- Header / Navbar (Teal Executive Theme) -->
-    <header class="bg-white border-b border-teal-100 sticky top-0 z-30 shadow-xs">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-600 to-emerald-600 text-white flex items-center justify-center shadow-md shadow-teal-200">
-                    <i class="fa-solid fa-house-chimney-user text-lg"></i>
+    <header id="admin-navbar" class="bg-white border-b border-teal-100 sticky top-0 z-30 shadow-xs">
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
@@ -95,7 +95,7 @@
     </header>
 
     <!-- Main Content -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+    <main id="admin-main-content" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
 
         <!-- Filter Periode & Kontrol -->
         <section class="bg-white p-4 sm:p-5 rounded-2xl border border-teal-100/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -344,6 +344,77 @@
         </section>
 
     </main>
+
+    <!-- ===================================================================== -->
+    <!-- HALAMAN ETALASE PUBLIK UNTUK GOOGLE MAPS (?view=public)               -->
+    <!-- ===================================================================== -->
+    <div id="public-gmaps-view" class="hidden flex-1 flex-col bg-slate-50">
+        <!-- Banner Simulasi jika sedang pratinjau -->
+        <div class="bg-teal-900 text-teal-50 px-4 py-2 text-xs">
+            <div class="max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-2">
+                <span class="flex items-center gap-1.5">
+                    <i class="fa-solid fa-eye text-amber-400"></i>
+                    <span>Tampilan <strong>Halaman Publik Google Maps</strong> (Privasi penghuni & keuangan disembunyikan otomatis)</span>
+                </span>
+                <button onclick="switchToAdminDashboard()" class="px-2.5 py-1 bg-white text-teal-900 hover:bg-teal-50 rounded-lg text-[11px] font-bold transition cursor-pointer">
+                    <i class="fa-solid fa-arrow-left mr-1"></i>Kembali ke Dashboard Pemilik
+                </button>
+            </div>
+        </div>
+
+        <!-- Hero Profil Kost -->
+        <section class="bg-gradient-to-br from-teal-700 via-teal-800 to-emerald-900 text-white py-8 sm:py-10 px-4 shadow-sm">
+            <div class="max-w-4xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+                <div class="space-y-2">
+                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-teal-50 text-xs font-semibold border border-white/20">
+                        <i class="fa-solid fa-location-dot text-amber-300"></i>
+                        <span>Info Ketersediaan Kamar Real-Time</span>
+                    </div>
+                    <h1 id="public-kost-title" class="text-2xl sm:text-3xl font-extrabold tracking-tight">JuraganKost-Demo</h1>
+                    <p class="text-xs sm:text-sm text-teal-100 max-w-xl">
+                        Cek status kamar kosong secara langsung sebelum survei lokasi. Klik tombol <strong>Tanya / Booking via WhatsApp</strong> pada kamar yang tersedia.
+                    </p>
+                </div>
+
+                <!-- Ringkasan Kamar Tersedia -->
+                <div class="bg-white/10 backdrop-blur-xs border border-white/20 rounded-2xl p-4 sm:min-w-[190px] text-center shrink-0">
+                    <p class="text-[11px] uppercase tracking-wider text-teal-100 font-semibold">Kamar Tersedia</p>
+                    <p id="public-available-count" class="text-3xl font-extrabold text-amber-300 mt-1">0 Kamar</p>
+                    <p id="public-total-rooms-note" class="text-[11px] text-teal-100 mt-0.5">Dari total 0 kamar</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Daftar Kamar Publik (Tanpa Nama Penghuni & Tanpa Data Keuangan) -->
+        <section class="max-w-4xl w-full mx-auto px-4 py-6 sm:py-8 space-y-4 flex-1">
+            <div class="flex items-center justify-between">
+                <h2 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-door-open text-teal-600"></i>
+                    <span>Daftar Kamar & Harga Sewa</span>
+                </h2>
+                <span class="text-xs text-slate-500 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Update Otomatis</span>
+                </span>
+            </div>
+
+            <div id="public-rooms-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Dirender oleh JS -->
+            </div>
+
+            <!-- Tombol Tanya Umum ke Pemilik Kost -->
+            <div class="mt-6 bg-white rounded-2xl border border-teal-100 p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
+                <div>
+                    <h3 class="font-bold text-slate-900 text-sm sm:text-base">Ingin tanya fasilitas, parkir, atau jadwal survei?</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Hubungi langsung pengelola kost melalui WhatsApp resmi.</p>
+                </div>
+                <button onclick="contactOwnerGeneralWA()" class="w-full sm:w-auto px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer shrink-0">
+                    <i class="fa-brands fa-whatsapp text-base"></i>
+                    <span>Chat Pengelola Kost</span>
+                </button>
+            </div>
+        </section>
+    </div>
 
     <!-- Footer -->
     <footer class="bg-white border-t border-teal-100 py-4 mt-8">
@@ -621,6 +692,28 @@
                     <p class="text-[11px] text-slate-400 mt-1">Cocok dicoba saat presentasi agar calon klien melihat nama kost mereka sendiri.</p>
                 </div>
 
+                <!-- Pengaturan Link Publik Google Maps -->
+                <div class="border-t border-slate-100 pt-3 space-y-2.5">
+                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Link Publik Google Maps & WA Booking</label>
+                    <div class="flex gap-2">
+                        <input type="tel" id="owner-wa-input" placeholder="No. WA Pemilik (Misal: 081234567890)" class="flex-1 px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                        <button type="button" onclick="saveOwnerWaPhone()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl transition cursor-pointer">
+                            Simpan WA
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" onclick="copyPublicMapsLink()" class="px-3 py-2 bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-semibold rounded-xl border border-teal-200 transition flex items-center justify-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-copy"></i>
+                            <span>Salin Link GMaps</span>
+                        </button>
+                        <button type="button" onclick="openPublicMapsPreview()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-xl border border-slate-200 transition flex items-center justify-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            <span>Buka Etalase</span>
+                        </button>
+                    </div>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Link ini aman dipasang di profil <strong>Google Maps</strong> kost agar calon penyewa bisa cek kamar kosong & langsung klik booking WA.</p>
+                </div>
+
                 <div class="border-t border-slate-100 pt-3">
                     <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Kode Ruang Sinkronisasi (Firebase)</label>
                     <div class="flex gap-2">
@@ -716,6 +809,7 @@
             LAYOUT: 'juragankost_demo_layout_v1',
             SYNC_CODE: 'juragankost_demo_sync_code_v1',
             BRAND_NAME: 'juragankost_demo_brand_v1',
+            OWNER_WA: 'juragankost_demo_owner_wa_v1',
             LAST_UPDATED: 'juragankost_demo_updated_v1'
         };
 
@@ -723,12 +817,15 @@
         const CLOUD_API_BASE = 'https://juragankost-demo-default-rtdb.asia-southeast1.firebasedatabase.app/juragankost_rooms';
         const DEFAULT_SYNC_CODE = 'juragankost-demo-utama';
         const DEFAULT_BRAND_NAME = 'JuraganKost-Demo';
+        const DEFAULT_OWNER_WA = '081234567890';
 
         const urlParams = new URLSearchParams(window.location.search);
         const urlCustomCode = urlParams.get('kode');
+        let isPublicViewMode = urlParams.get('view') === 'public';
 
         let activeSyncCode = urlCustomCode || localStorage.getItem(STORAGE_KEYS.SYNC_CODE) || DEFAULT_SYNC_CODE;
         let activeBrandName = localStorage.getItem(STORAGE_KEYS.BRAND_NAME) || DEFAULT_BRAND_NAME;
+        let activeOwnerWa = localStorage.getItem(STORAGE_KEYS.OWNER_WA) || DEFAULT_OWNER_WA;
         let isSyncing = false;
         let cloudSyncInterval = null;
 
@@ -849,6 +946,8 @@
             localStorage.setItem(STORAGE_KEYS.ROOMS, JSON.stringify(roomsData));
             localStorage.setItem(STORAGE_KEYS.PAYMENTS, JSON.stringify(paymentsData));
             localStorage.setItem(STORAGE_KEYS.EXPENSES, JSON.stringify(expensesData));
+            localStorage.setItem(STORAGE_KEYS.BRAND_NAME, activeBrandName);
+            localStorage.setItem(STORAGE_KEYS.OWNER_WA, activeOwnerWa);
             localStorage.setItem(STORAGE_KEYS.LAST_UPDATED, String(timestamp));
 
             if (triggerCloudPush) {
@@ -868,8 +967,95 @@
 
         function updateBrandUI() {
             const titleEl = document.getElementById('brand-title-text');
+            const publicTitleEl = document.getElementById('public-kost-title');
             if (titleEl) titleEl.textContent = activeBrandName;
-            document.title = `${activeBrandName} — Sistem Manajemen & Tagihan Kost Modern`;
+            if (publicTitleEl) publicTitleEl.textContent = activeBrandName;
+            document.title = isPublicViewMode
+                ? `Info Kamar Kosong — ${activeBrandName}`
+                : `${activeBrandName} — Sistem Manajemen & Tagihan Kost Modern`;
+        }
+
+        function saveBrandName() {
+            const val = document.getElementById('brand-name-input').value.trim();
+            if (!val) {
+                showToast('Nama kost tidak boleh kosong!', 'warning');
+                return;
+            }
+            activeBrandName = val;
+            localStorage.setItem(STORAGE_KEYS.BRAND_NAME, activeBrandName);
+            updateBrandUI();
+            saveData(true);
+            showToast(`Nama kost berhasil diubah menjadi "${activeBrandName}"`, 'success');
+        }
+
+        function saveOwnerWaPhone() {
+            const val = document.getElementById('owner-wa-input').value.trim();
+            if (!val) {
+                showToast('Nomor WhatsApp pemilik tidak boleh kosong!', 'warning');
+                return;
+            }
+            activeOwnerWa = val;
+            localStorage.setItem(STORAGE_KEYS.OWNER_WA, activeOwnerWa);
+            saveData(true);
+            showToast('Nomor WhatsApp booking publik berhasil disimpan!', 'success');
+        }
+
+        function getPublicMapsUrl() {
+            const baseUrl = window.location.origin + window.location.pathname;
+            const safeCode = encodeURIComponent(getSanitizedSyncCode());
+            return `${baseUrl}?kode=${safeCode}&view=public`;
+        }
+
+        function copyPublicMapsLink() {
+            const publicUrl = getPublicMapsUrl();
+            const tempInput = document.createElement('input');
+            tempInput.value = publicUrl;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            showToast('Link Halaman Publik Google Maps berhasil disalin!', 'success');
+        }
+
+        function openPublicMapsPreview() {
+            closeSyncModal();
+            isPublicViewMode = true;
+            applyViewModeUI();
+            renderPublicRoomsView();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function switchToAdminDashboard() {
+            isPublicViewMode = false;
+            if (window.location.search.includes('view=public')) {
+                const cleanUrl = `${window.location.pathname}?kode=${encodeURIComponent(getSanitizedSyncCode())}`;
+                window.history.replaceState({}, document.title, cleanUrl);
+            }
+            applyViewModeUI();
+            renderAll();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function applyViewModeUI() {
+            const demoStrip = document.getElementById('demo-top-strip');
+            const adminNav = document.getElementById('admin-navbar');
+            const adminMain = document.getElementById('admin-main-content');
+            const publicView = document.getElementById('public-gmaps-view');
+
+            if (isPublicViewMode) {
+                demoStrip.classList.add('hidden');
+                adminNav.classList.add('hidden');
+                adminMain.classList.add('hidden');
+                publicView.classList.remove('hidden');
+                publicView.classList.add('flex');
+            } else {
+                demoStrip.classList.remove('hidden');
+                adminNav.classList.remove('hidden');
+                adminMain.classList.remove('hidden');
+                publicView.classList.add('hidden');
+                publicView.classList.remove('flex');
+            }
+            updateBrandUI();
         }
 
         function saveBrandName() {
@@ -923,6 +1109,8 @@
             try {
                 const payload = {
                     updatedAt: timestamp,
+                    brandName: activeBrandName,
+                    ownerWa: activeOwnerWa,
                     rooms: roomsData,
                     payments: paymentsData,
                     expenses: expensesData
@@ -978,10 +1166,19 @@
                             roomsData = cloudData.rooms;
                             paymentsData = Array.isArray(cloudData.payments) ? cloudData.payments : [];
                             expensesData = Array.isArray(cloudData.expenses) ? cloudData.expenses : [];
+                            if (cloudData.brandName) {
+                                activeBrandName = cloudData.brandName;
+                                localStorage.setItem(STORAGE_KEYS.BRAND_NAME, activeBrandName);
+                            }
+                            if (cloudData.ownerWa) {
+                                activeOwnerWa = cloudData.ownerWa;
+                                localStorage.setItem(STORAGE_KEYS.OWNER_WA, activeOwnerWa);
+                            }
                             localStorage.setItem(STORAGE_KEYS.ROOMS, JSON.stringify(roomsData));
                             localStorage.setItem(STORAGE_KEYS.PAYMENTS, JSON.stringify(paymentsData));
                             localStorage.setItem(STORAGE_KEYS.EXPENSES, JSON.stringify(expensesData));
                             localStorage.setItem(STORAGE_KEYS.LAST_UPDATED, String(cloudUpdated || Date.now()));
+                            updateBrandUI();
                             renderAll();
                             if (isManual) showToast('Data berhasil disinkronkan dari Firebase!', 'success');
                         } else if (localUpdated > cloudUpdated) {
@@ -1020,6 +1217,7 @@
 
         function openSyncModal() {
             document.getElementById('brand-name-input').value = activeBrandName;
+            document.getElementById('owner-wa-input').value = activeOwnerWa;
             document.getElementById('sync-code-input').value = activeSyncCode;
             const modal = document.getElementById('sync-modal');
             modal.classList.remove('hidden');
@@ -1328,6 +1526,10 @@
 
         // --- 7. RENDER UTAMA ---
         function renderAll() {
+            if (isPublicViewMode) {
+                renderPublicRoomsView();
+                return;
+            }
             const periodKey = getPeriodKey(selectedYear, selectedMonth);
             const periodLabel = `${MONTH_NAMES[selectedMonth]} ${selectedYear}`;
             document.getElementById('period-label-badge').textContent = periodLabel;
@@ -1337,6 +1539,80 @@
             renderRooms(periodKey);
             renderHistoryTable();
             renderExpenseTable(periodKey);
+        }
+
+        function renderPublicRoomsView() {
+            const grid = document.getElementById('public-rooms-grid');
+            const availEl = document.getElementById('public-available-count');
+            const totalEl = document.getElementById('public-total-rooms-note');
+            if (!grid) return;
+
+            const emptyRooms = roomsData.filter(r => r.status === 'empty');
+            availEl.textContent = `${emptyRooms.length} Kamar`;
+            totalEl.textContent = `Dari total ${roomsData.length} kamar kost`;
+
+            if (roomsData.length === 0) {
+                grid.innerHTML = `<div class="col-span-full bg-white p-8 rounded-2xl border border-slate-200 text-center text-xs text-slate-500">Data kamar sedang diperbarui oleh pengelola kost.</div>`;
+                return;
+            }
+
+            grid.innerHTML = roomsData.map((room, idx) => {
+                const isAvailable = room.status === 'empty';
+                const numLabel = String(idx + 1).padStart(2, '0');
+                return `
+                    <div class="bg-white rounded-2xl border ${isAvailable ? 'border-emerald-200 shadow-xs' : 'border-slate-200 opacity-80'} p-5 flex flex-col justify-between gap-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-11 h-11 rounded-xl ${isAvailable ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-500'} font-bold flex items-center justify-center text-base">
+                                    ${numLabel}
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-slate-900 text-base">${escapeHtml(room.name)}</h3>
+                                    <p class="text-sm font-extrabold text-teal-700 mt-0.5">${formatRupiah(room.price)} <span class="text-xs font-normal text-slate-500">/ bulan</span></p>
+                                </div>
+                            </div>
+                            ${isAvailable
+                                ? `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Tersedia</span>`
+                                : `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200">Terisi</span>`
+                            }
+                        </div>
+
+                        <div class="pt-3 border-t border-slate-100">
+                            ${isAvailable
+                                ? `<button onclick="bookRoomViaWA('${room.id}')" class="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer">
+                                        <i class="fa-brands fa-whatsapp text-sm"></i>
+                                        <span>Tanya / Booking Kamar Ini</span>
+                                   </button>`
+                                : `<button disabled class="w-full py-2.5 px-4 bg-slate-100 text-slate-400 text-xs font-semibold rounded-xl cursor-not-allowed">
+                                        Kamar Sudah Terisi
+                                   </button>`
+                            }
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function bookRoomViaWA(roomId) {
+            const room = roomsData.find(r => r.id === roomId);
+            if (!room) return;
+            const waPhone = formatWhatsAppPhone(activeOwnerWa);
+            if (!waPhone) {
+                showToast('Nomor WhatsApp pengelola belum diatur.', 'warning');
+                return;
+            }
+            const msg = `Halo Pak/Bu pengelola *${activeBrandName}*,\n\nSaya melihat info ketersediaan kamar di Google Maps bahwa *${room.name}* (${formatRupiah(room.price)}/bulan) saat ini masih *TERSEDIA*.\n\nBoleh saya tanya info fasilitas dan jadwal survei kamarnya? Terima kasih!`;
+            window.open(`https://wa.me/${waPhone}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
+        }
+
+        function contactOwnerGeneralWA() {
+            const waPhone = formatWhatsAppPhone(activeOwnerWa);
+            if (!waPhone) {
+                showToast('Nomor WhatsApp pengelola belum diatur.', 'warning');
+                return;
+            }
+            const msg = `Halo Pak/Bu pengelola *${activeBrandName}*,\n\nSaya melihat profil kost di Google Maps. Boleh tanya info ketersediaan kamar dan fasilitas kostnya? Terima kasih!`;
+            window.open(`https://wa.me/${waPhone}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
         }
 
         function renderStats(periodKey) {
@@ -2095,7 +2371,7 @@
 
         // --- 14. JALANKAN APLIKASI SAAT HALAMAN SIAP ---
         window.addEventListener('DOMContentLoaded', () => {
-            updateBrandUI();
+            applyViewModeUI();
             loadDataFromLocal();
             initPeriodControls();
             renderAll();
