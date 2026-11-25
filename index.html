@@ -361,12 +361,12 @@
     <!-- HALAMAN ETALASE PUBLIK UNTUK GOOGLE MAPS (?view=public)               -->
     <!-- ===================================================================== -->
     <div id="public-gmaps-view" class="hidden flex-1 flex-col bg-slate-50">
-        <!-- Banner Simulasi jika sedang pratinjau -->
-        <div class="bg-teal-900 text-teal-50 px-4 py-2 text-xs">
+        <!-- Banner Simulasi (Hanya muncul saat dibuka lewat tombol pratinjau pemilik) -->
+        <div id="public-preview-bar" class="hidden bg-teal-900 text-teal-50 px-4 py-2 text-xs">
             <div class="max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-2">
                 <span class="flex items-center gap-1.5">
                     <i class="fa-solid fa-eye text-amber-400"></i>
-                    <span>Tampilan <strong>Halaman Publik Google Maps</strong> (Privasi penghuni & keuangan disembunyikan)</span>
+                    <span>Mode Pratinjau Pemilik (Pengunjung dari Google Maps tidak melihat bar ini)</span>
                 </span>
                 <div class="flex items-center gap-2">
                     <button onclick="copyPublicMapsLink()" class="px-2.5 py-1 bg-amber-400 text-slate-900 hover:bg-amber-300 rounded-lg text-[11px] font-bold transition cursor-pointer flex items-center gap-1">
@@ -825,6 +825,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const urlCustomCode = urlParams.get('kode');
         let isPublicViewMode = urlParams.get('view') === 'public';
+        let isOwnerPreviewingPublic = false;
 
         let activeSyncCode = urlCustomCode || localStorage.getItem(STORAGE_KEYS.SYNC_CODE) || DEFAULT_SYNC_CODE;
         let activeBrandName = localStorage.getItem(STORAGE_KEYS.BRAND_NAME) || DEFAULT_BRAND_NAME;
@@ -1023,6 +1024,7 @@
         function openPublicMapsPreview() {
             closeSyncModal();
             isPublicViewMode = true;
+            isOwnerPreviewingPublic = true;
             const publicUrl = getPublicMapsUrl();
             window.history.replaceState({}, document.title, publicUrl);
             applyViewModeUI();
@@ -1032,6 +1034,7 @@
 
         function switchToAdminDashboard() {
             isPublicViewMode = false;
+            isOwnerPreviewingPublic = false;
             const cleanUrl = `${window.location.pathname}?kode=${encodeURIComponent(getSanitizedSyncCode())}`;
             window.history.replaceState({}, document.title, cleanUrl);
             applyViewModeUI();
@@ -1043,23 +1046,36 @@
             const demoStrip = document.getElementById('demo-top-strip');
             const adminNav = document.getElementById('admin-navbar');
             const adminMain = document.getElementById('admin-main-content');
+            const adminFooter = document.getElementById('admin-footer');
             const publicView = document.getElementById('public-gmaps-view');
+            const publicPreviewBar = document.getElementById('public-preview-bar');
 
             if (isPublicViewMode) {
                 demoStrip.classList.add('hidden');
                 adminNav.classList.add('hidden');
                 adminMain.classList.add('hidden');
+                if (adminFooter) adminFooter.classList.add('hidden');
                 publicView.classList.remove('hidden');
                 publicView.classList.add('flex');
+
+                // Hanya tampilkan tombol "Kembali ke Pemilik" jika dibuka dari tombol pratinjau admin
+                if (publicPreviewBar) {
+                    if (isOwnerPreviewingPublic) {
+                        publicPreviewBar.classList.remove('hidden');
+                    } else {
+                        publicPreviewBar.classList.add('hidden');
+                    }
+                }
             } else {
                 demoStrip.classList.remove('hidden');
                 adminNav.classList.remove('hidden');
                 adminMain.classList.remove('hidden');
+                if (adminFooter) adminFooter.classList.remove('hidden');
                 publicView.classList.add('hidden');
                 publicView.classList.remove('flex');
+            }
+            updateBrandUI();
         }
-        updateBrandUI();
-    }
 
     // --- 3. SINKRONISASI CLOUD FIREBASE ---
         function updateSyncUI(state, customText = '') {
