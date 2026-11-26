@@ -489,6 +489,26 @@
                     </div>
                 </div>
 
+                <!-- Galeri Foto Kamar (Untuk Etalase Publik GMaps) -->
+                <div class="pt-3 border-t border-slate-100 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Foto Kamar (Etalase Publik)</label>
+                        <span class="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">Maks. 4 Foto</span>
+                    </div>
+                    <div id="add-photos-preview" class="grid grid-cols-4 gap-2">
+                        <!-- Thumbnail foto kamar dirender oleh JS -->
+                    </div>
+                    <div class="flex flex-wrap gap-1.5" id="add-photo-presets">
+                        <!-- Tombol preset foto demo dirender oleh JS -->
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="url" id="add-custom-photo-input" placeholder="Tempel link URL foto kamar (https://...)" class="flex-1 px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-teal-500 focus:border-teal-500" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomPhotoUrl('add');}">
+                        <button type="button" onclick="addCustomPhotoUrl('add')" class="px-3 py-2 bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0">
+                            <i class="fa-solid fa-image mr-1"></i>Add
+                        </button>
+                    </div>
+                </div>
+
                 <div class="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
                     <button type="button" onclick="closeAddRoomModal()" class="px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer">
                         Batal
@@ -568,6 +588,26 @@
                         <input type="text" id="edit-custom-facility-input" placeholder="Tambah fasilitas lain (misal: Balkon)" class="flex-1 px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-teal-500 focus:border-teal-500" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomFacility('edit');}">
                         <button type="button" onclick="addCustomFacility('edit')" class="px-3 py-2 bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0">
                             <i class="fa-solid fa-plus mr-1"></i>Add
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Galeri Foto Kamar (Untuk Etalase Publik GMaps) -->
+                <div class="pt-3 border-t border-slate-100 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Foto Kamar (Etalase Publik)</label>
+                        <span class="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">Maks. 4 Foto</span>
+                    </div>
+                    <div id="edit-photos-preview" class="grid grid-cols-4 gap-2">
+                        <!-- Thumbnail foto kamar dirender oleh JS -->
+                    </div>
+                    <div class="flex flex-wrap gap-1.5" id="edit-photo-presets">
+                        <!-- Tombol preset foto demo dirender oleh JS -->
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="url" id="edit-custom-photo-input" placeholder="Tempel link URL foto kamar (https://...)" class="flex-1 px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-teal-500 focus:border-teal-500" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomPhotoUrl('edit');}">
+                        <button type="button" onclick="addCustomPhotoUrl('edit')" class="px-3 py-2 bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0">
+                            <i class="fa-solid fa-image mr-1"></i>Add
                         </button>
                     </div>
                 </div>
@@ -835,6 +875,35 @@
     </div>
 
     <!-- ===================================================================== -->
+    <!-- MODAL 7: LIGHTBOX PRATINJAU FOTO KAMAR LAYAR PENUH (HALAMAN PUBLIK)   -->
+    <!-- ===================================================================== -->
+    <div id="photo-lightbox-modal" onclick="if(event.target===this) closePhotoLightbox()" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/85 backdrop-blur-xs p-4">
+        <div class="max-w-2xl w-full bg-slate-900 rounded-2xl overflow-hidden border border-slate-700 shadow-2xl modal-animate">
+            <div class="px-4 py-3 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+                <div>
+                    <h4 id="lightbox-room-title" class="font-bold text-sm">Foto Kamar</h4>
+                    <p id="lightbox-photo-counter" class="text-[11px] text-slate-400">Foto 1 dari 1</p>
+                </div>
+                <button onclick="closePhotoLightbox()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="relative bg-black flex items-center justify-center aspect-video">
+                <img id="lightbox-main-img" src="" alt="Foto Kamar" onerror="this.src='https://placehold.co/800x500/0f766e/ffffff?text=Foto+Kamar'" class="w-full h-full object-contain">
+                <button type="button" onclick="navigateLightboxPhoto(-1)" class="absolute left-3 w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition cursor-pointer">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <button type="button" onclick="navigateLightboxPhoto(1)" class="absolute right-3 w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition cursor-pointer">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+            <div id="lightbox-thumbs-row" class="p-3 bg-slate-900 flex items-center justify-center gap-2 overflow-x-auto">
+                <!-- Thumbnail navigasi dirender oleh JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
     <!-- JAVASCRIPT LOGIC (JURAGANKOST-DEMO + FIREBASE REAL-TIME SYNC)         -->
     <!-- ===================================================================== -->
     <script>
@@ -903,6 +972,135 @@
         ];
         let addModalFacilities = [];
         let editModalFacilities = [];
+
+        // Preset Foto Simulasi Kamar (Untuk Demo & Pilihan Cepat)
+        const DEMO_ROOM_PHOTO_PRESETS = [
+            { label: 'Kamar AC Modern', url: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80' },
+            { label: 'Kasur & Meja Kerja', url: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80' },
+            { label: 'Kamar Mandi Dalam', url: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=800&q=80' },
+            { label: 'Kamar Minimalis', url: 'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=800&q=80' }
+        ];
+        let addModalPhotos = [];
+        let editModalPhotos = [];
+        let lightboxPhotosList = [];
+        let lightboxCurrentIndex = 0;
+
+        function renderPhotoManager(mode) {
+            const previewEl = document.getElementById(mode === 'add' ? 'add-photos-preview' : 'edit-photos-preview');
+            const presetsEl = document.getElementById(mode === 'add' ? 'add-photo-presets' : 'edit-photo-presets');
+            const photosList = mode === 'add' ? addModalPhotos : editModalPhotos;
+
+            if (previewEl) {
+                if (photosList.length === 0) {
+                    previewEl.innerHTML = `<div class="col-span-4 py-3 px-2 bg-slate-50 border border-dashed border-slate-200 rounded-xl text-center text-[11px] text-slate-400">Belum ada foto kamar dipilih</div>`;
+                } else {
+                    previewEl.innerHTML = photosList.map((url, idx) => `
+                        <div class="relative group aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
+                            <img src="${escapeHtml(url)}" alt="Foto ${idx + 1}" onerror="this.src='https://placehold.co/300x300/0f766e/ffffff?text=Kamar'" class="w-full h-full object-cover">
+                            <button type="button" onclick="removePhotoItem('${mode}', ${idx})" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-rose-600 text-white text-[10px] flex items-center justify-center shadow-xs hover:bg-rose-700 cursor-pointer" title="Hapus Foto">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                            ${idx === 0 ? `<span class="absolute bottom-1 left-1 px-1.5 py-0.5 bg-black/65 text-white text-[9px] font-bold rounded">Utama</span>` : ''}
+                        </div>
+                    `).join('');
+                }
+            }
+
+            if (presetsEl) {
+                presetsEl.innerHTML = DEMO_ROOM_PHOTO_PRESETS.map((preset, i) => `
+                    <button type="button" onclick="addPresetPhoto('${mode}', ${i})" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-teal-50 text-slate-600 hover:text-teal-700 border border-slate-200 text-[10px] font-semibold transition flex items-center gap-1 cursor-pointer">
+                        <i class="fa-solid fa-camera text-teal-600"></i>
+                        <span>+ ${escapeHtml(preset.label)}</span>
+                    </button>
+                `).join('');
+            }
+        }
+
+        function addPresetPhoto(mode, presetIndex) {
+            const preset = DEMO_ROOM_PHOTO_PRESETS[presetIndex];
+            if (!preset) return;
+            const list = mode === 'add' ? addModalPhotos : editModalPhotos;
+            if (list.length >= 4) {
+                showToast('Maksimal 4 foto per kamar.', 'warning');
+                return;
+            }
+            if (!list.includes(preset.url)) {
+                list.push(preset.url);
+            }
+            renderPhotoManager(mode);
+        }
+
+        function addCustomPhotoUrl(mode) {
+            const inputEl = document.getElementById(mode === 'add' ? 'add-custom-photo-input' : 'edit-custom-photo-input');
+            if (!inputEl) return;
+            const urlVal = inputEl.value.trim();
+            if (!urlVal || (!urlVal.startsWith('http://') && !urlVal.startsWith('https://'))) {
+                showToast('Masukkan URL foto valid (diawali https://).', 'warning');
+                return;
+            }
+            const list = mode === 'add' ? addModalPhotos : editModalPhotos;
+            if (list.length >= 4) {
+                showToast('Maksimal 4 foto per kamar.', 'warning');
+                return;
+            }
+            if (!list.includes(urlVal)) {
+                list.push(urlVal);
+            }
+            inputEl.value = '';
+            renderPhotoManager(mode);
+        }
+
+        function removePhotoItem(mode, index) {
+            const list = mode === 'add' ? addModalPhotos : editModalPhotos;
+            list.splice(index, 1);
+            renderPhotoManager(mode);
+        }
+
+        function openPhotoLightbox(roomId, startIndex = 0) {
+            const room = roomsData.find(r => r.id === roomId);
+            if (!room || !Array.isArray(room.photos) || room.photos.length === 0) return;
+
+            lightboxPhotosList = room.photos;
+            lightboxCurrentIndex = Math.min(Math.max(0, startIndex), lightboxPhotosList.length - 1);
+            document.getElementById('lightbox-room-title').textContent = `${room.name} — ${formatRupiah(room.price)}/bln`;
+            updateLightboxDisplay();
+
+            const modal = document.getElementById('photo-lightbox-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closePhotoLightbox() {
+            const modal = document.getElementById('photo-lightbox-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function navigateLightboxPhoto(step) {
+            if (lightboxPhotosList.length === 0) return;
+            lightboxCurrentIndex = (lightboxCurrentIndex + step + lightboxPhotosList.length) % lightboxPhotosList.length;
+            updateLightboxDisplay();
+        }
+
+        function selectLightboxPhoto(idx) {
+            lightboxCurrentIndex = idx;
+            updateLightboxDisplay();
+        }
+
+        function updateLightboxDisplay() {
+            const imgEl = document.getElementById('lightbox-main-img');
+            const counterEl = document.getElementById('lightbox-photo-counter');
+            const thumbsRow = document.getElementById('lightbox-thumbs-row');
+
+            imgEl.src = lightboxPhotosList[lightboxCurrentIndex];
+            counterEl.textContent = `Foto ${lightboxCurrentIndex + 1} dari ${lightboxPhotosList.length}`;
+
+            thumbsRow.innerHTML = lightboxPhotosList.map((url, idx) => `
+                <button type="button" onclick="selectLightboxPhoto(${idx})" class="w-14 h-10 rounded-lg overflow-hidden border-2 transition cursor-pointer ${idx === lightboxCurrentIndex ? 'border-emerald-400 scale-105' : 'border-transparent opacity-60 hover:opacity-100'}">
+                    <img src="${escapeHtml(url)}" alt="Thumb ${idx + 1}" onerror="this.src='https://placehold.co/120x80/0f766e/ffffff?text=Kamar'" class="w-full h-full object-cover">
+                </button>
+            `).join('');
+        }
 
         function getFacilityIconClass(facilityName) {
             const lower = (facilityName || '').toLowerCase();
@@ -977,11 +1175,75 @@
             const dueSoon = Math.min(28, todayObj.getDate() + 2);
 
             const demoRooms = [
-                { id: 'jk-r1', name: 'Kamar 01 (AC)', status: 'occupied', tenantName: 'Rizky Pratama', tenantPhone: '081234567890', price: 1500000, dueDay: 5, facilities: ['AC', 'Kamar Mandi Dalam', 'WiFi Kencang', 'Kasur & Bantal', 'Lemari Pakaian'] },
-                { id: 'jk-r2', name: 'Kamar 02 (AC)', status: 'occupied', tenantName: 'Nadia Putri', tenantPhone: '082198765432', price: 1500000, dueDay: dueSoon, facilities: ['AC', 'Kamar Mandi Dalam', 'WiFi Kencang', 'Kasur & Bantal', 'Meja & Kursi'] },
-                { id: 'jk-r3', name: 'Kamar 03 (Non-AC)', status: 'occupied', tenantName: 'Hendra Wijaya', tenantPhone: '085711223344', price: 1000000, dueDay: dueLate, facilities: ['WiFi Kencang', 'Kasur & Bantal', 'Lemari Pakaian', 'Parkir Motor'] },
-                { id: 'jk-r4', name: 'Kamar 04 (Non-AC)', status: 'occupied', tenantName: 'Aulia Rahman', tenantPhone: '081355667788', price: 1000000, dueDay: 20, facilities: ['WiFi Kencang', 'Kasur & Bantal', 'Lemari Pakaian'] },
-                { id: 'jk-r5', name: 'Kamar 05 (AC)', status: 'empty', tenantName: '', tenantPhone: '', price: 1500000, dueDay: 1, facilities: ['AC', 'Kamar Mandi Dalam', 'WiFi Kencang', 'Kasur & Bantal', 'Lemari Pakaian', 'Water Heater'] }
+                {
+                    id: 'jk-r1',
+                    name: 'Kamar 01 (AC)',
+                    status: 'occupied',
+                    tenantName: 'Rizky Pratama',
+                    tenantPhone: '081234567890',
+                    price: 1500000,
+                    dueDay: 5,
+                    facilities: ['AC', 'Kamar Mandi Dalam', 'WiFi Kencang', 'Kasur & Bantal', 'Lemari Pakaian'],
+                    photos: [
+                        'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80',
+                        'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=800&q=80'
+                    ]
+                },
+                {
+                    id: 'jk-r2',
+                    name: 'Kamar 02 (AC)',
+                    status: 'occupied',
+                    tenantName: 'Nadia Putri',
+                    tenantPhone: '082198765432',
+                    price: 1500000,
+                    dueDay: dueSoon,
+                    facilities: ['AC', 'Kamar Mandi Dalam', 'WiFi Kencang', 'Kasur & Bantal', 'Meja & Kursi'],
+                    photos: [
+                        'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80',
+                        'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=800&q=80'
+                    ]
+                },
+                {
+                    id: 'jk-r3',
+                    name: 'Kamar 03 (Non-AC)',
+                    status: 'occupied',
+                    tenantName: 'Hendra Wijaya',
+                    tenantPhone: '085711223344',
+                    price: 1000000,
+                    dueDay: dueLate,
+                    facilities: ['WiFi Kencang', 'Kasur & Bantal', 'Lemari Pakaian', 'Parkir Motor'],
+                    photos: [
+                        'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=800&q=80'
+                    ]
+                },
+                {
+                    id: 'jk-r4',
+                    name: 'Kamar 04 (Non-AC)',
+                    status: 'occupied',
+                    tenantName: 'Aulia Rahman',
+                    tenantPhone: '081355667788',
+                    price: 1000000,
+                    dueDay: 20,
+                    facilities: ['WiFi Kencang', 'Kasur & Bantal', 'Lemari Pakaian'],
+                    photos: [
+                        'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=800&q=80'
+                    ]
+                },
+                {
+                    id: 'jk-r5',
+                    name: 'Kamar 05 (AC)',
+                    status: 'empty',
+                    tenantName: '',
+                    tenantPhone: '',
+                    price: 1500000,
+                    dueDay: 1,
+                    facilities: ['AC', 'Kamar Mandi Dalam', 'WiFi Kencang', 'Kasur & Bantal', 'Lemari Pakaian', 'Water Heater'],
+                    photos: [
+                        'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80',
+                        'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80',
+                        'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=800&q=80'
+                    ]
+                }
             ];
 
             const demoPayments = [
@@ -1679,6 +1941,19 @@
                 const isAvailable = room.status === 'empty';
                 const numLabel = String(idx + 1).padStart(2, '0');
                 const facilities = Array.isArray(room.facilities) ? room.facilities : [];
+                const photos = Array.isArray(room.photos) ? room.photos : [];
+                const mainPhotoUrl = photos[0] || `https://placehold.co/800x480/0f766e/ffffff?text=${encodeURIComponent(room.name)}`;
+
+                const extraThumbsHtml = photos.length > 1
+                    ? `<div class="flex items-center gap-1.5 mt-2">
+                        ${photos.map((pUrl, pIdx) => `
+                            <button type="button" onclick="openPhotoLightbox('${room.id}', ${pIdx})" class="w-12 h-9 rounded-lg overflow-hidden border border-slate-200 hover:border-teal-500 transition cursor-pointer shrink-0">
+                                <img src="${escapeHtml(pUrl)}" alt="Foto ${pIdx + 1}" onerror="this.src='https://placehold.co/150x100/0f766e/ffffff?text=Foto'" class="w-full h-full object-cover">
+                            </button>
+                        `).join('')}
+                       </div>`
+                    : '';
+
                 const facilitiesHtml = facilities.length > 0
                     ? `<div class="flex flex-wrap gap-1.5">
                         ${facilities.map(f => `
@@ -1691,32 +1966,50 @@
                     : `<p class="text-[11px] text-slate-400 italic">Fasilitas standar kamar kost</p>`;
 
                 return `
-                    <div class="bg-white rounded-2xl border ${isAvailable ? 'border-emerald-200 shadow-xs' : 'border-slate-200 opacity-85'} p-5 flex flex-col justify-between gap-4">
-                        <div class="space-y-3">
-                            <div class="flex items-start justify-between gap-3">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-11 h-11 rounded-xl ${isAvailable ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-500'} font-bold flex items-center justify-center text-base shrink-0">
-                                        ${numLabel}
-                                    </div>
-                                    <div>
-                                        <h3 class="font-bold text-slate-900 text-base">${escapeHtml(room.name)}</h3>
-                                        <p class="text-sm font-extrabold text-teal-700 mt-0.5">${formatRupiah(room.price)} <span class="text-xs font-normal text-slate-500">/ bulan</span></p>
-                                    </div>
+                    <div class="bg-white rounded-2xl border ${isAvailable ? 'border-emerald-200 shadow-xs' : 'border-slate-200 opacity-90'} overflow-hidden flex flex-col justify-between">
+                        <div>
+                            <!-- Foto Utama Kamar (Klik untuk Lihat Galeri Penuh) -->
+                            <div onclick="${photos.length > 0 ? `openPhotoLightbox('${room.id}', 0)` : ''}" class="relative h-48 bg-slate-100 overflow-hidden group ${photos.length > 0 ? 'cursor-pointer' : ''}">
+                                <img src="${escapeHtml(mainPhotoUrl)}" alt="${escapeHtml(room.name)}" onerror="this.src='https://placehold.co/800x480/0f766e/ffffff?text=${encodeURIComponent(room.name)}'" class="w-full h-full object-cover transition duration-300 group-hover:scale-105">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent"></div>
+
+                                <div class="absolute top-3 left-3">
+                                    ${isAvailable
+                                        ? `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-600 text-white shadow-xs flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-amber-300 animate-pulse"></span> Tersedia</span>`
+                                        : `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-900/75 text-slate-200 backdrop-blur-xs">Terisi</span>`
+                                    }
                                 </div>
-                                ${isAvailable
-                                    ? `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Tersedia</span>`
-                                    : `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200 shrink-0">Terisi</span>`
+
+                                ${photos.length > 0
+                                    ? `<span class="absolute bottom-3 right-3 px-2.5 py-1 rounded-lg bg-black/65 text-white text-[11px] font-semibold backdrop-blur-xs flex items-center gap-1.5">
+                                            <i class="fa-solid fa-images text-emerald-300"></i>
+                                            <span>${photos.length} Foto</span>
+                                       </span>`
+                                    : ''
                                 }
+
+                                <div class="absolute bottom-3 left-3 text-white">
+                                    <span class="text-[10px] font-bold uppercase tracking-wider text-teal-200">Kamar ${numLabel}</span>
+                                    <h3 class="font-extrabold text-base leading-tight drop-shadow-xs">${escapeHtml(room.name)}</h3>
+                                </div>
                             </div>
 
-                            <!-- Keterangan Fasilitas Kamar -->
-                            <div class="pt-2 border-t border-slate-100">
-                                <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Fasilitas Kamar</p>
-                                ${facilitiesHtml}
+                            <div class="p-5 space-y-3">
+                                ${extraThumbsHtml}
+
+                                <div class="flex items-baseline justify-between">
+                                    <p class="text-lg font-extrabold text-teal-700">${formatRupiah(room.price)} <span class="text-xs font-normal text-slate-500">/ bulan</span></p>
+                                </div>
+
+                                <!-- Keterangan Fasilitas Kamar -->
+                                <div class="pt-2.5 border-t border-slate-100">
+                                    <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Fasilitas Kamar</p>
+                                    ${facilitiesHtml}
+                                </div>
                             </div>
                         </div>
 
-                        <div class="pt-3 border-t border-slate-100">
+                        <div class="px-5 pb-5 pt-3 border-t border-slate-100">
                             ${isAvailable
                                 ? `<button onclick="bookRoomViaWA('${room.id}')" class="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer">
                                         <i class="fa-brands fa-whatsapp text-sm"></i>
@@ -2222,8 +2515,11 @@
             document.getElementById('add-room-price').value = 1200000;
             document.getElementById('add-room-due').value = 5;
             document.getElementById('add-custom-facility-input').value = '';
+            document.getElementById('add-custom-photo-input').value = '';
             addModalFacilities = ['WiFi Kencang', 'Kasur & Bantal', 'Lemari Pakaian'];
+            addModalPhotos = [DEMO_ROOM_PHOTO_PRESETS[0].url];
             renderFacilitySelector('add');
+            renderPhotoManager('add');
             toggleAddTenantFields();
 
             const modal = document.getElementById('add-room-modal');
@@ -2269,14 +2565,15 @@
                 tenantPhone: status === 'occupied' ? tenantPhone : '',
                 price,
                 dueDay: Math.min(31, Math.max(1, dueDay)),
-                facilities: [...addModalFacilities]
+                facilities: [...addModalFacilities],
+                photos: [...addModalPhotos]
             };
 
             roomsData.push(newRoom);
             saveData(true);
             closeAddRoomModal();
             renderAll();
-            showToast(`${newRoom.name} beserta fasilitasnya berhasil ditambahkan!`, 'success');
+            showToast(`${newRoom.name} beserta fasilitas & fotonya berhasil ditambahkan!`, 'success');
         });
 
         // --- 10. MODAL EDIT & HAPUS KAMAR ---
@@ -2293,8 +2590,11 @@
             document.getElementById('edit-room-price').value = room.price || 0;
             document.getElementById('edit-room-due').value = room.dueDay || 1;
             document.getElementById('edit-custom-facility-input').value = '';
+            document.getElementById('edit-custom-photo-input').value = '';
             editModalFacilities = Array.isArray(room.facilities) ? [...room.facilities] : [];
+            editModalPhotos = Array.isArray(room.photos) ? [...room.photos] : [];
             renderFacilitySelector('edit');
+            renderPhotoManager('edit');
 
             toggleTenantFields();
 
@@ -2345,84 +2645,14 @@
                 tenantPhone: status === 'occupied' ? tenantPhone : '',
                 price,
                 dueDay: Math.min(31, Math.max(1, dueDay)),
-                facilities: [...editModalFacilities]
+                facilities: [...editModalFacilities],
+                photos: [...editModalPhotos]
             };
 
             saveData(true);
             closeEditModal();
             renderAll();
-            showToast(`Data & fasilitas ${name} berhasil diperbarui!`, 'success');
-        });
-
-        // --- 10. MODAL EDIT & HAPUS KAMAR ---
-        function openEditModal(roomId) {
-            const room = roomsData.find(r => r.id === roomId);
-            if (!room) return;
-
-            document.getElementById('edit-room-id').value = room.id;
-            document.getElementById('edit-modal-title').innerHTML = `<i class="fa-solid fa-pen-to-square text-teal-600"></i> <span>Edit ${escapeHtml(room.name)}</span>`;
-            document.getElementById('edit-room-name').value = room.name;
-            document.getElementById('edit-room-status').value = room.status;
-            document.getElementById('edit-tenant-name').value = room.tenantName || '';
-            document.getElementById('edit-tenant-phone').value = room.tenantPhone || '';
-            document.getElementById('edit-room-price').value = room.price || 0;
-            document.getElementById('edit-room-due').value = room.dueDay || 1;
-
-            toggleTenantFields();
-
-            const modal = document.getElementById('edit-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        function closeEditModal() {
-            const modal = document.getElementById('edit-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-
-        function toggleTenantFields() {
-            const status = document.getElementById('edit-room-status').value;
-            const group = document.getElementById('tenant-fields-group');
-            group.style.opacity = status === 'empty' ? '0.45' : '1';
-        }
-
-        document.getElementById('edit-room-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const roomId = document.getElementById('edit-room-id').value;
-            const roomIndex = roomsData.findIndex(r => r.id === roomId);
-            if (roomIndex === -1) return;
-
-            const name = document.getElementById('edit-room-name').value.trim();
-            const status = document.getElementById('edit-room-status').value;
-            const tenantName = document.getElementById('edit-tenant-name').value.trim();
-            const tenantPhone = document.getElementById('edit-tenant-phone').value.trim();
-            const price = parseInt(document.getElementById('edit-room-price').value, 10) || 0;
-            const dueDay = parseInt(document.getElementById('edit-room-due').value, 10) || 1;
-
-            if (!name) {
-                showToast('Nama kamar tidak boleh kosong!', 'warning');
-                return;
-            }
-            if (status === 'occupied' && !tenantName) {
-                showToast('Nama penghuni wajib diisi jika status kamar Terisi.', 'warning');
-                return;
-            }
-
-            roomsData[roomIndex] = {
-                ...roomsData[roomIndex],
-                name,
-                status,
-                tenantName: status === 'occupied' ? tenantName : '',
-                tenantPhone: status === 'occupied' ? tenantPhone : '',
-                price,
-                dueDay: Math.min(31, Math.max(1, dueDay))
-            };
-
-            saveData(true);
-            closeEditModal();
-            renderAll();
-            showToast(`Data ${name} berhasil diperbarui!`, 'success');
+            showToast(`Data, fasilitas & foto ${name} berhasil diperbarui!`, 'success');
         });
 
         function promptDeleteRoom() {
