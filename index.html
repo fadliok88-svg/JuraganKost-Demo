@@ -493,9 +493,9 @@
                 <div class="pt-3 border-t border-slate-100 space-y-2.5">
                     <div class="flex items-center justify-between">
                         <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Foto Kamar (Etalase Publik)</label>
-                        <span class="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">Maks. 4 Foto</span>
+                        <span class="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">Maks. 1 Foto / Kamar</span>
                     </div>
-                    <div id="add-photos-preview" class="grid grid-cols-4 gap-2">
+                    <div id="add-photos-preview" class="grid grid-cols-1 gap-2">
                         <!-- Thumbnail foto kamar dirender oleh JS -->
                     </div>
 
@@ -504,7 +504,7 @@
                         <label class="px-3 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs">
                             <i class="fa-solid fa-images"></i>
                             <span>Pilih dari Galeri</span>
-                            <input type="file" accept="image/*" multiple class="hidden" onchange="handleLocalPhotoUpload(event, 'add')">
+                            <input type="file" accept="image/*" class="hidden" onchange="handleLocalPhotoUpload(event, 'add')">
                         </label>
                         <label class="px-3 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs">
                             <i class="fa-solid fa-camera"></i>
@@ -620,9 +620,9 @@
                 <div class="pt-3 border-t border-slate-100 space-y-2.5">
                     <div class="flex items-center justify-between">
                         <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Foto Kamar (Etalase Publik)</label>
-                        <span class="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">Maks. 4 Foto</span>
+                        <span class="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">Maks. 1 Foto / Kamar</span>
                     </div>
-                    <div id="edit-photos-preview" class="grid grid-cols-4 gap-2">
+                    <div id="edit-photos-preview" class="grid grid-cols-1 gap-2">
                         <!-- Thumbnail foto kamar dirender oleh JS -->
                     </div>
 
@@ -631,7 +631,7 @@
                         <label class="px-3 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs">
                             <i class="fa-solid fa-images"></i>
                             <span>Pilih dari Galeri</span>
-                            <input type="file" accept="image/*" multiple class="hidden" onchange="handleLocalPhotoUpload(event, 'edit')">
+                            <input type="file" accept="image/*" class="hidden" onchange="handleLocalPhotoUpload(event, 'edit')">
                         </label>
                         <label class="px-3 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs">
                             <i class="fa-solid fa-camera"></i>
@@ -1032,6 +1032,7 @@
         let editModalPhotos = [];
         let lightboxPhotosList = [];
         let lightboxCurrentIndex = 0;
+        const MAX_PHOTOS_PER_ROOM = 1;
 
         function renderPhotoManager(mode) {
             const previewEl = document.getElementById(mode === 'add' ? 'add-photos-preview' : 'edit-photos-preview');
@@ -1040,15 +1041,15 @@
 
             if (previewEl) {
                 if (photosList.length === 0) {
-                    previewEl.innerHTML = `<div class="col-span-4 py-3 px-2 bg-slate-50 border border-dashed border-slate-200 rounded-xl text-center text-[11px] text-slate-400">Belum ada foto kamar dipilih</div>`;
+                    previewEl.innerHTML = `<div class="py-3 px-2 bg-slate-50 border border-dashed border-slate-200 rounded-xl text-center text-[11px] text-slate-400">Belum ada foto kamar dipilih (Maksimal 1 foto utama)</div>`;
                 } else {
-                    previewEl.innerHTML = photosList.map((url, idx) => `
-                        <div class="relative group aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
-                            <img src="${escapeHtml(url)}" alt="Foto ${idx + 1}" onerror="this.src='https://placehold.co/300x300/0f766e/ffffff?text=Kamar'" class="w-full h-full object-cover">
-                            <button type="button" onclick="removePhotoItem('${mode}', ${idx})" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-rose-600 text-white text-[10px] flex items-center justify-center shadow-xs hover:bg-rose-700 cursor-pointer" title="Hapus Foto">
-                                <i class="fa-solid fa-xmark"></i>
+                    previewEl.innerHTML = photosList.slice(0, MAX_PHOTOS_PER_ROOM).map((url, idx) => `
+                        <div class="relative group h-32 rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
+                            <img src="${escapeHtml(url)}" alt="Foto Utama Kamar" onerror="this.src='https://placehold.co/600x360/0f766e/ffffff?text=Foto+Kamar'" class="w-full h-full object-cover">
+                            <button type="button" onclick="removePhotoItem('${mode}', ${idx})" class="absolute top-2 right-2 px-2 py-1 rounded-lg bg-rose-600 text-white text-[10px] font-semibold flex items-center gap-1 shadow-xs hover:bg-rose-700 cursor-pointer" title="Hapus Foto">
+                                <i class="fa-solid fa-trash-can"></i><span>Hapus</span>
                             </button>
-                            ${idx === 0 ? `<span class="absolute bottom-1 left-1 px-1.5 py-0.5 bg-black/65 text-white text-[9px] font-bold rounded">Utama</span>` : ''}
+                            <span class="absolute bottom-2 left-2 px-2 py-0.5 bg-black/70 text-white text-[10px] font-bold rounded">Foto Utama Kamar</span>
                         </div>
                     `).join('');
                 }
@@ -1067,15 +1068,13 @@
         function addPresetPhoto(mode, presetIndex) {
             const preset = DEMO_ROOM_PHOTO_PRESETS[presetIndex];
             if (!preset) return;
-            const list = mode === 'add' ? addModalPhotos : editModalPhotos;
-            if (list.length >= 4) {
-                showToast('Maksimal 4 foto per kamar.', 'warning');
-                return;
-            }
-            if (!list.includes(preset.url)) {
-                list.push(preset.url);
+            if (mode === 'add') {
+                addModalPhotos = [preset.url];
+            } else {
+                editModalPhotos = [preset.url];
             }
             renderPhotoManager(mode);
+            showToast('Foto utama kamar diperbarui.', 'info');
         }
 
         function addCustomPhotoUrl(mode) {
@@ -1086,16 +1085,14 @@
                 showToast('Masukkan URL foto valid (diawali https://).', 'warning');
                 return;
             }
-            const list = mode === 'add' ? addModalPhotos : editModalPhotos;
-            if (list.length >= 4) {
-                showToast('Maksimal 4 foto per kamar.', 'warning');
-                return;
-            }
-            if (!list.includes(urlVal)) {
-                list.push(urlVal);
+            if (mode === 'add') {
+                addModalPhotos = [urlVal];
+            } else {
+                editModalPhotos = [urlVal];
             }
             inputEl.value = '';
             renderPhotoManager(mode);
+            showToast('Foto utama kamar diperbarui.', 'info');
         }
 
         function removePhotoItem(mode, index) {
@@ -1145,26 +1142,23 @@
             const files = Array.from(event.target.files || []);
             if (files.length === 0) return;
 
-            const list = mode === 'add' ? addModalPhotos : editModalPhotos;
-            const remainingSlots = 4 - list.length;
-
-            if (remainingSlots <= 0) {
-                showToast('Maksimal 4 foto per kamar sudah penuh.', 'warning');
+            const file = files[0];
+            if (!file.type.startsWith('image/')) {
                 event.target.value = '';
                 return;
             }
 
-            const filesToProcess = files.slice(0, remainingSlots);
-            showToast(`Memproses ${filesToProcess.length} foto kamar...`, 'info');
+            showToast('Memproses 1 foto utama kamar...', 'info');
 
             try {
-                for (const file of filesToProcess) {
-                    if (!file.type.startsWith('image/')) continue;
-                    const compressedUrl = await compressImageFile(file);
-                    list.push(compressedUrl);
+                const compressedUrl = await compressImageFile(file);
+                if (mode === 'add') {
+                    addModalPhotos = [compressedUrl];
+                } else {
+                    editModalPhotos = [compressedUrl];
                 }
                 renderPhotoManager(mode);
-                showToast('Foto kamar berhasil ditambahkan!', 'success');
+                showToast('Foto utama kamar berhasil dipasang!', 'success');
             } catch (err) {
                 console.error(err);
                 showToast('Gagal memuat foto dari perangkat.', 'error');
@@ -1302,8 +1296,7 @@
                     dueDay: 5,
                     facilities: ['AC', 'Kamar Mandi Dalam', 'WiFi Kencang', 'Kasur & Bantal', 'Lemari Pakaian'],
                     photos: [
-                        'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80',
-                        'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=800&q=80'
+                        'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80'
                     ]
                 },
                 {
@@ -1316,8 +1309,7 @@
                     dueDay: dueSoon,
                     facilities: ['AC', 'Kamar Mandi Dalam', 'WiFi Kencang', 'Kasur & Bantal', 'Meja & Kursi'],
                     photos: [
-                        'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80',
-                        'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=800&q=80'
+                        'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80'
                     ]
                 },
                 {
@@ -1356,9 +1348,7 @@
                     dueDay: 1,
                     facilities: ['AC', 'Kamar Mandi Dalam', 'WiFi Kencang', 'Kasur & Bantal', 'Lemari Pakaian', 'Water Heater'],
                     photos: [
-                        'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80',
-                        'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80',
-                        'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=800&q=80'
+                        'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80'
                     ]
                 }
             ];
